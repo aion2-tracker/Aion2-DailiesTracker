@@ -8,6 +8,13 @@
   // ---------- i18n ----------
   const STR = {
     es: {
+      tab_transfers: "Traspasos",
+      k_title: "Kinah por personaje", k_free: "Sin bindear", k_bound: "Bindeado", k_send: "Enviar al main",
+      k_ready: "Listo para pasar desde alters", k_log: "Envíos",
+      k_hint: "Anotá el Kinah de cada uno (acepta 4.8m, 300k). Solo el sin bindear se puede mandar al main.",
+      k_no_main: "Marcá un personaje como Main para poder enviarle Kinah.", k_bad: "Usá un número, ej. 2500000, 4.8m o 300k.",
+      xfer_intro: "Según guías de la comunidad. Lo marcado sin confirmar puede cambiar en el lanzamiento global: revisá el tooltip del item en el juego.",
+      xfer_worth: "Vale la pena pasar al main", xfer_no: "No se puede pasar", xfer_account: "Ya es compartido por la cuenta", unconfirmed: "sin confirmar",
       elyos: "Elyos", asmodian: "Asmodian",
       tab_checklist: "Checklist", tab_overview: "Roster", tab_progress: "Progresión", tab_tips: "Consejos", tab_settings: "Ajustes",
       footer: "Proyecto de fans, sin relación con NCSOFT. Tus datos se guardan solo en este navegador: exportalos desde Ajustes para no perderlos.",
@@ -43,6 +50,13 @@
       contribute: "¿Algo desactualizado? Abrí un issue o PR en GitHub."
     },
     en: {
+      tab_transfers: "Transfers",
+      k_title: "Kinah per character", k_free: "Unbound", k_bound: "Bound", k_send: "Send to main",
+      k_ready: "Ready to move from alts", k_log: "Transfers",
+      k_hint: "Log each character's Kinah (accepts 4.8m, 300k). Only unbound Kinah can be sent to your main.",
+      k_no_main: "Mark a character as Main to send Kinah to it.", k_bad: "Use a number, e.g. 2500000, 4.8m or 300k.",
+      xfer_intro: "Based on community guides. Unconfirmed items may change at global launch: check the item tooltip in game.",
+      xfer_worth: "Worth sending to main", xfer_no: "Can't be moved", xfer_account: "Already shared by the account", unconfirmed: "unconfirmed",
       elyos: "Elyos", asmodian: "Asmodian",
       tab_checklist: "Checklist", tab_overview: "Roster", tab_progress: "Progression", tab_tips: "Tips", tab_settings: "Settings",
       footer: "Fan project, not affiliated with NCSOFT. Your data lives only in this browser: export it from Settings to keep it safe.",
@@ -99,7 +113,8 @@
     overrides: {},
     custom: [],
     chars: [],
-    account: { prog: {} }
+    account: { prog: {} },
+    transfers: []
   });
 
   function load() {
@@ -110,6 +125,17 @@
     return defaults();
   }
   let state = load();
+  function migrate() {
+    for (const c of state.chars) {
+      c.kinah ||= { free: 0, bound: 0 };
+      if (c.hv !== 2) {
+        DATA.tasks.forEach((tk) => { if (tk.id !== "funnel" && !(tk.id in c.hidden)) c.hidden[tk.id] = false; });
+        c.hv = 2;
+      }
+    }
+    state.transfers ||= [];
+  }
+  migrate();
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (_) {} };
 
   // ---------- Time zones ----------
@@ -168,6 +194,17 @@
     "America/Chicago", "America/Los_Angeles", "Europe/London", "Europe/Madrid", "Europe/Berlin", "Asia/Seoul", "Asia/Taipei", "Asia/Tokyo"
   ]));
 
+  // ---------- Kinah ----------
+  // Acepta "4.8m", "300k", "1,5kk", "2500000"
+  function parseAmount(v) {
+    const m = String(v).trim().toLowerCase().replace(",", ".").match(/^(\d+(?:\.\d+)?)\s*(kk|m|k|b)?$/);
+    if (!m) return null;
+    const mult = { k: 1e3, kk: 1e6, m: 1e6, b: 1e9 }[m[2]] || 1;
+    return Math.round(parseFloat(m[1]) * mult);
+  }
+  const fmtK = (n) => (n || 0).toLocaleString(state.lang);
+  const short = (n) => n >= 1e9 ? (n / 1e9).toFixed(2).replace(/\.?0+$/, "") + "B" : n >= 1e6 ? (n / 1e6).toFixed(2).replace(/\.?0+$/, "") + "M" : n >= 1e3 ? Math.round(n / 1e3) + "K" : String(n || 0);
+
   // ---------- Tasks ----------
   function allTasks() {
     return [...DATA.tasks, ...state.custom].map((tk) => {
@@ -176,6 +213,9 @@
     });
   }
   const activeTasks = () => allTasks().filter((tk) => !tk.off);
+  // Oculta por defecto según el rol; ch.hidden guarda solo lo que el usuario cambió
+  const defaultHidden = (tk, ch) => (ch.role === "alt" ? tk.alt === false : tk.main === false);
+  const isHidden = (tk, ch) => (tk.id in ch.hidden ? ch.hidden[tk.id] : defaultHidden(tk, ch));
   const activeChar = () => state.chars.find((c) => c.id === state.active) || state.chars[0] || null;
   const progStore = (tk, ch) => (tk.scope === "account" ? state.account.prog : ch.prog);
   const getVal = (tk, ch) => Math.min(progStore(tk, ch)[tk.id] || 0, tk.max);
@@ -335,9 +375,7 @@
         if (!name) return false;
         const role = fd.get("role"), cls = fd.get("cls");
         if (isNew) {
-          const hidden = {};
-          if (role === "alt") DATA.tasks.forEach((tk) => { if (!tk.alt) hidden[tk.id] = true; });
-          const c = { id: uid(), name, cls, role, hidden, prog: {}, cp: [], ms: {}, goals: [], notes: "" };
+          const c = { id: uid(), name, cls, role, hidden: {}, hv: 2, prog: {}, cp: [], ms: {}, goals: [], notes: "", kinah: { free: 0, bound: 0 } };
           state.chars.push(c);
           state.active = c.id;
         } else Object.assign(ch, { name, cls, role });
@@ -367,7 +405,7 @@
   }
 
   function taskRow(tk, ch) {
-    const v = getVal(tk, ch), hidden = !!ch.hidden[tk.id];
+    const v = getVal(tk, ch), hidden = isHidden(tk, ch);
     let ctrl;
     if (tk.max === 1) {
       ctrl = `<button class="pip single ${v ? "on" : ""}" data-set="${tk.id}" data-v="${v ? 0 : 1}" aria-label="${esc(L(tk.name))}" aria-pressed="${!!v}"></button>`;
@@ -400,8 +438,8 @@
     const tasks = activeTasks();
     const col = (period) => {
       const all = tasks.filter((tk) => tk.period === period);
-      const vis = all.filter((tk) => !ch.hidden[tk.id]);
-      const hid = all.filter((tk) => ch.hidden[tk.id]);
+      const vis = all.filter((tk) => !isHidden(tk, ch));
+      const hid = all.filter((tk) => isHidden(tk, ch));
       const got = vis.reduce((a, tk) => a + getVal(tk, ch) / tk.max, 0);
       const pct = vis.length ? Math.round((got / vis.length) * 100) : 0;
       return `<section class="${period}-list">
@@ -428,7 +466,7 @@
       ${tasks.filter((tk) => tk.period === period).map((tk) => `<tr>
         <td>${esc(L(tk.name))}${tk.scope === "account" ? ` <span class="badge shared">${t("shared")}</span>` : ""}</td>
         ${state.chars.map((c) => {
-          if (c.hidden[tk.id]) return `<td class="hidden">—</td>`;
+          if (isHidden(tk, c)) return `<td class="hidden">—</td>`;
           const v = getVal(tk, c);
           const cls = v >= tk.max ? "full" : v > 0 ? "part" : "";
           return `<td class="${cls}">${tk.max === 1 ? (v ? "✓" : "·") : `${v}/${tk.max}`}</td>`;
@@ -501,6 +539,39 @@
           ${grp.items.map((it) => `<label class="check"><input type="checkbox" data-ms="${it.id}" ${ch.ms[it.id] ? "checked" : ""}>${esc(L(it))}</label>`).join("")}
         </div>`).join("")}
       </section>
+    </div>`;
+  }
+
+  function renderTransfers() {
+    if (!state.chars.length) { $view.innerHTML = `<div class="panel empty"><p>${t("overview_empty")}</p></div>`; return; }
+    const main = state.chars.find((c) => c.role === "main");
+    const alts = state.chars.filter((c) => c.role === "alt");
+    const altFree = alts.reduce((a, c) => a + (c.kinah.free || 0), 0);
+    const kinahRow = (c) => `<tr>
+      <td>${esc(c.name)} <span class="muted">${t(c.role)}</span></td>
+      <td><input class="amt" inputmode="decimal" value="${c.kinah.free ? short(c.kinah.free) : ""}" placeholder="0" data-kinah="${c.id}" data-kind="free" aria-label="${t("k_free")} ${esc(c.name)}"></td>
+      <td><input class="amt" inputmode="decimal" value="${c.kinah.bound ? short(c.kinah.bound) : ""}" placeholder="0" data-kinah="${c.id}" data-kind="bound" aria-label="${t("k_bound")} ${esc(c.name)}"></td>
+      <td>${c.role === "alt" && main ? `<button class="btn small" data-send="${c.id}" ${c.kinah.free ? "" : "disabled"}>${t("k_send")}</button>` : ""}</td>
+    </tr>`;
+    const col = (key, cls) => `<section class="panel xfer ${cls}"><h3>${t(key)}</h3>
+      ${DATA.transfer[cls].map((it) => `<div class="xfer-item"><div class="t-name">${esc(L(it.name))}${it.sure ? "" : ` <span class="badge">${t("unconfirmed")}</span>`}</div>
+        ${L(it.note) ? `<div class="t-desc">${esc(L(it.note))}</div>` : ""}</div>`).join("")}</section>`;
+    const log = state.transfers.slice(-8).reverse();
+    $view.innerHTML = `<div class="stack">
+      <section class="panel">
+        <div class="list-head"><h3>${t("k_title")}</h3>
+          ${alts.length ? `<span class="muted">${t("k_ready")}: <b class="k-total">${fmtK(altFree)}</b></span>` : ""}</div>
+        <p class="hint">${t("k_hint")}</p>
+        <div class="table-wrap"><table class="matrix kinah-table">
+          <thead><tr><th></th><th>${t("k_free")}</th><th>${t("k_bound")}</th><th></th></tr></thead>
+          <tbody>${[main, ...alts].filter(Boolean).map(kinahRow).join("")}</tbody>
+        </table></div>
+        ${!main && alts.length ? `<p class="hint">${t("k_no_main")}</p>` : ""}
+        ${log.length ? `<details style="margin-top:12px"><summary class="muted">${t("k_log")} (${state.transfers.length})</summary>
+          ${log.map((x) => `<div class="goal"><span>${esc(x.d)} — ${esc(x.from)} → ${esc(x.to)}: <b>${fmtK(x.amount)}</b></span></div>`).join("")}</details>` : ""}
+      </section>
+      <p class="muted" style="margin:0;max-width:70ch">${t("xfer_intro")}</p>
+      <div class="xfer-grid">${col("xfer_worth", "worth")}${col("xfer_no", "no")}${col("xfer_account", "account")}</div>
     </div>`;
   }
 
@@ -581,7 +652,7 @@
   function render() {
     applyChrome();
     renderRoster();
-    ({ checklist: renderChecklist, overview: renderOverview, progress: renderProgress, tips: renderTips, settings: renderSettings }[state.tab] || renderChecklist)();
+    ({ checklist: renderChecklist, overview: renderOverview, progress: renderProgress, tips: renderTips, transfers: renderTransfers, settings: renderSettings }[state.tab] || renderChecklist)();
   }
 
   // ---------- Events ----------
@@ -613,8 +684,18 @@
       setVal(tk, ch, +d.v); save(); render(); return;
     }
     if (d.toggleHide && ch) {
-      if (ch.hidden[d.toggleHide]) delete ch.hidden[d.toggleHide]; else ch.hidden[d.toggleHide] = true;
+      const tk = allTasks().find((x) => x.id === d.toggleHide);
+      ch.hidden[tk.id] = !isHidden(tk, ch);
       save(); render(); return;
+    }
+    if (d.send) {
+      const alt = state.chars.find((c) => c.id === d.send), main = state.chars.find((c) => c.role === "main");
+      if (alt && main && alt.kinah.free > 0) {
+        state.transfers.push({ d: new Date().toISOString().slice(0, 10), from: alt.name, to: main.name, amount: alt.kinah.free });
+        main.kinah.free += alt.kinah.free; alt.kinah.free = 0;
+        save(); render();
+      }
+      return;
     }
     if ("showHidden" in d) { state.showHidden = !state.showHidden; save(); render(); return; }
     if (d.goal && ch) { const g = ch.goals.find((x) => x.id === d.goal); g.done = el.checked; save(); render(); return; }
@@ -648,6 +729,11 @@
       }).catch(() => alert(t("import_bad")));
     }
     if ("notes" in el.dataset && ch) { ch.notes = el.value; save(); }
+    if (el.dataset.kinah) {
+      const c = state.chars.find((x) => x.id === el.dataset.kinah), n = el.value.trim() === "" ? 0 : parseAmount(el.value);
+      if (n == null) { el.setCustomValidity(t("k_bad")); el.reportValidity(); return; }
+      el.setCustomValidity(""); c.kinah[el.dataset.kind] = n; save(); render();
+    }
   });
 
   document.addEventListener("submit", (e) => {

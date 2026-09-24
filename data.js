@@ -80,8 +80,44 @@ window.AION_DATA = {
       name: { es: "Tope semanal de Abyss", en: "Abyss weekly cap" },
       desc: { es: "Recompensas semanales del Abyss.", en: "Abyss weekly rewards." } },
     { id: "supply_w", period: "weekly", scope: "char", max: 1, alt: false,
-      name: { es: "Supply Requests (semanales)", en: "Supply Requests (weekly)" }, desc: { es: "", en: "" } }
+      name: { es: "Supply Requests (semanales)", en: "Supply Requests (weekly)" }, desc: { es: "", en: "" } },
+    { id: "funnel", period: "weekly", scope: "char", max: 1, alt: true, main: false,
+      name: { es: "Pasar Kinah y materiales al main", en: "Send Kinah and materials to main" },
+      desc: { es: "Kinah sin bindear y lo que se pueda traspasar. Mirá la pestaña Traspasos.",
+              en: "Unbound Kinah and anything transferable. See the Transfers tab." } }
   ],
+
+  // Qué se puede pasar de los alters al main. sure: false = no confirmado por más de una fuente.
+  // What can move from alts to main. sure: false = not confirmed by more than one source.
+  transfer: {
+    worth: [
+      { sure: true, name: { es: "Kinah sin bindear", en: "Unbound Kinah" },
+        note: { es: "Sale de Expedition: Conquest. Se manda al main por correo.", en: "Comes from Expedition: Conquest. Mail it to your main." } },
+      { sure: false, name: { es: "Enhance Stones", en: "Enhance Stones" },
+        note: { es: "Truco: subí a +3 un equipo normal/high-grade tradeable y pasalo por el warehouse.", en: "Trick: enhance tradable normal/high-grade gear to +3 and move it through the warehouse." } },
+      { sure: false, name: { es: "Materiales Wrathful (versión tradeable)", en: "Wrathful materials (tradable version)" },
+        note: { es: "Algunas dungeons los dropean en versión tradeable además de la soul-bound. Revisá el tooltip.", en: "Some dungeons drop a tradable version besides the soul-bound one. Check the tooltip." } },
+      { sure: false, name: { es: "Amplify Stone (Unique)", en: "Amplify Stone (Unique)" },
+        note: { es: "No figura como Bound, pero no está confirmado.", en: "Not listed as Bound, but unconfirmed." } },
+      { sure: false, name: { es: "Equipo tradeable sin equipar", en: "Unequipped tradable gear" },
+        note: { es: "Se puede pasar mientras no lo equipes: al equiparlo queda bindeado.", en: "Movable as long as it's never equipped: equipping binds it." } }
+    ],
+    no: [
+      { sure: true, name: { es: "Kinah bindeado", en: "Bound Kinah" },
+        note: { es: "Sale de Expedition: Exploration y queda en ese personaje.", en: "Comes from Expedition: Exploration and stays on that character." } },
+      { sure: true, name: { es: "Odyle Energy", en: "Odyle Energy" }, note: { es: "Por personaje.", en: "Per character." } },
+      { sure: true, name: { es: "Equipo ya equipado", en: "Gear once equipped" }, note: { es: "", en: "" } },
+      { sure: false, name: { es: "Items marcados (Bound)", en: "Items tagged (Bound)" },
+        note: { es: "Power Shards, Transfer Stone, Sync Stone, Orichalcum Ore, gemas Radiant/Pure, cofres de selección.", en: "Power Shards, Transfer Stone, Sync Stone, Orichalcum Ore, Radiant/Pure gems, selection chests." } }
+    ],
+    account: [
+      { sure: true, name: { es: "Colecciones", en: "Collections" },
+        note: { es: "Pantheon, títulos, pets y closet: los stats aplican a todos tus personajes.", en: "Pantheon, titles, pets and closet: stats apply to every character." } },
+      { sure: false, name: { es: "Qunah", en: "Qunah" }, note: { es: "Una sola fuente dice que es compartida.", en: "Only one source says it's shared." } },
+      { sure: false, name: { es: "Plumas (Monolith)", en: "Feathers (Monolith)" },
+        note: { es: "Anunciado como compartido a futuro en KR.", en: "Announced as shared in a future KR update." } }
+    ]
+  },
 
   // Hitos permanentes por personaje / Permanent per-character milestones
   milestones: [

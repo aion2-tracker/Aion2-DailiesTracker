@@ -296,3 +296,20 @@ dialog .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top
   .clock-edit { top: 6px; right: 6px; }
 }
 .tasks-table td:nth-child(2) { text-align: left; white-space: normal; }
+
+/* Traspasos */
+.kinah-table td:first-child { white-space: nowrap; }
+.kinah-table input.amt { width: 120px; text-align: right; font-variant-numeric: tabular-nums; }
+.kinah-table input.amt:invalid { border-color: var(--danger); }
+.k-total { color: var(--gold); font-variant-numeric: tabular-nums; }
+.xfer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
+.xfer-grid > * { min-width: 0; }
+.xfer h3 { margin-bottom: 4px; }
+.xfer.worth h3 { color: var(--aether); }
+.xfer.no h3 { color: var(--danger); }
+.xfer-item { padding: 10px 0; border-bottom: 1px solid var(--line); }
+.xfer-item:last-child { border-bottom: 0; }
+.xfer-item .t-desc { font-size: .85rem; color: var(--ink-soft); margin-top: 2px; }
+@media (max-width: 900px) { .xfer-grid { grid-template-columns: 1fr; } }
+.panel .matrix th:first-child, .panel .matrix td:first-child { background: var(--surface); }
+.badge { white-space: nowrap; }
