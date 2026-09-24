@@ -14,7 +14,7 @@
       k_hint: "Anotá el Kinah de cada uno (acepta 4.8m, 300k). Solo el sin bindear se puede mandar al main.",
       k_no_main: "Marcá un personaje como Main para poder enviarle Kinah.", k_bad: "Usá un número, ej. 2500000, 4.8m o 300k.",
       xfer_intro: "Según guías de la comunidad. Lo marcado sin confirmar puede cambiar en el lanzamiento global: revisá el tooltip del item en el juego.",
-      xfer_worth: "Vale la pena pasar al main", xfer_no: "No se puede pasar", xfer_account: "Ya es compartido por la cuenta", unconfirmed: "sin confirmar",
+      xfer_worth: "Vale la pena pasar al main", xfer_no: "No se puede pasar", xfer_account: "Ya es compartido por la cuenta", unconfirmed: "sin confirmar", unconfirmed_hint: "Número no confirmado para global. Podés ajustar las cargas en Ajustes.",
       elyos: "Elyos", asmodian: "Asmodian",
       tab_checklist: "Checklist", tab_overview: "Roster", tab_progress: "Progresión", tab_tips: "Consejos", tab_settings: "Ajustes",
       footer: "Proyecto de fans, sin relación con NCSOFT. Tus datos se guardan solo en este navegador: exportalos desde Ajustes para no perderlos.",
@@ -30,11 +30,11 @@
       alt_note: "A los alters les mostramos una lista corta. Podés mostrar el resto cuando quieras.",
       clock_title_daily: "Reset diario", clock_title_weekly: "Reset semanal",
       timezone: "Zona horaria", time: "Hora del reset", weekday: "Día",
-      tz_hint: "Escribí una ciudad (ej. America/Buenos_Aires). Cada contador usa su propia zona.",
+      tz_hint: "Escribí una ciudad (ej. America/Buenos_Aires). Cada contador usa su propia zona. NCSOFT todavía no anunció la hora de reset de los servidores globales.",
       tz_invalid: "Esa zona horaria no existe. Elegí una de la lista.",
       preset_local: "Mi hora", next_reset: "Próximo reset",
-      cp: "Combat Power", cp_add: "Registrar", cp_empty: "Registrá tu CP para ver tu curva.",
-      gates: "Contenido por CP", milestones: "Hitos permanentes", goals: "Objetivos", goal_ph: "Ej. +15 en el arma",
+      cp: "Item Level", cp_add: "Registrar", cp_empty: "Registrá tu Item Level para ver tu curva.",
+      gates: "Contenido por Item Level", milestones: "Hitos permanentes", goals: "Objetivos", goal_ph: "Ej. +15 en el arma",
       notes: "Notas", notes_ph: "Builds, stigmas, lo que quieras recordar…",
       history: "Historial",
       lang_label: "Idioma", tasks: "Tareas", tasks_hint: "Ajustá las cargas si tu servidor es distinto, o apagá lo que no hacés.",
@@ -46,7 +46,7 @@
       imported: "Backup importado.", import_bad: "Ese archivo no es un backup de AION 2 Tracker.",
       overview_empty: "Agregá personajes para ver el resumen del roster.",
       done: "hecho", days: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
-      tips_intro: "Basado en guías de la comunidad. Los números pueden cambiar con el lanzamiento global: corregilos en Ajustes o mandá un PR.",
+      tips_intro: "Enfocado solo en la versión global (NA, SA, EU y JP). Basado en anuncios de NCSOFT, el Launch Scale Test y guías de la comunidad. Lo marcado sin confirmar puede cambiar el 5 de octubre: corregilo en Ajustes o mandá un PR.",
       contribute: "¿Algo desactualizado? Abrí un issue o PR en GitHub."
     },
     en: {
@@ -56,7 +56,7 @@
       k_hint: "Log each character's Kinah (accepts 4.8m, 300k). Only unbound Kinah can be sent to your main.",
       k_no_main: "Mark a character as Main to send Kinah to it.", k_bad: "Use a number, e.g. 2500000, 4.8m or 300k.",
       xfer_intro: "Based on community guides. Unconfirmed items may change at global launch: check the item tooltip in game.",
-      xfer_worth: "Worth sending to main", xfer_no: "Can't be moved", xfer_account: "Already shared by the account", unconfirmed: "unconfirmed",
+      xfer_worth: "Worth sending to main", xfer_no: "Can't be moved", xfer_account: "Already shared by the account", unconfirmed: "unconfirmed", unconfirmed_hint: "Number not confirmed for global. You can adjust charges in Settings.",
       elyos: "Elyos", asmodian: "Asmodian",
       tab_checklist: "Checklist", tab_overview: "Roster", tab_progress: "Progression", tab_tips: "Tips", tab_settings: "Settings",
       footer: "Fan project, not affiliated with NCSOFT. Your data lives only in this browser: export it from Settings to keep it safe.",
@@ -72,11 +72,11 @@
       alt_note: "Alts start with a short list. Show the rest whenever you like.",
       clock_title_daily: "Daily reset", clock_title_weekly: "Weekly reset",
       timezone: "Time zone", time: "Reset time", weekday: "Day",
-      tz_hint: "Type a city (e.g. America/New_York). Each counter uses its own zone.",
+      tz_hint: "Type a city (e.g. America/New_York). Each counter uses its own zone. NCSOFT hasn't announced the reset time for global servers yet.",
       tz_invalid: "That time zone doesn't exist. Pick one from the list.",
       preset_local: "My time", next_reset: "Next reset",
-      cp: "Combat Power", cp_add: "Log", cp_empty: "Log your CP to see your curve.",
-      gates: "Content by CP", milestones: "Permanent milestones", goals: "Goals", goal_ph: "e.g. +15 weapon",
+      cp: "Item Level", cp_add: "Log", cp_empty: "Log your Item Level to see your curve.",
+      gates: "Content by Item Level", milestones: "Permanent milestones", goals: "Goals", goal_ph: "e.g. +15 weapon",
       notes: "Notes", notes_ph: "Builds, stigmas, anything to remember…",
       history: "History",
       lang_label: "Language", tasks: "Tasks", tasks_hint: "Adjust charges if your server differs, or turn off what you skip.",
@@ -88,7 +88,7 @@
       imported: "Backup imported.", import_bad: "That file isn't an AION 2 Tracker backup.",
       overview_empty: "Add characters to see the roster overview.",
       done: "done", days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-      tips_intro: "Based on community guides. Numbers may change with the global launch: fix them in Settings or send a PR.",
+      tips_intro: "Focused only on the global version (NA, SA, EU and JP). Based on NCSOFT announcements, the Launch Scale Test and community guides. Unconfirmed items may change on October 5: fix them in Settings or send a PR.",
       contribute: "Something outdated? Open an issue or PR on GitHub."
     }
   };
@@ -313,7 +313,7 @@
 
   function clockDialog(kind) {
     const c = state.clocks[kind];
-    const presets = [["preset_local", LOCAL_TZ], ["Seoul (KST)", "Asia/Seoul"], ["Taipei", "Asia/Taipei"], ["UTC", "UTC"]];
+    const presets = [["preset_local", LOCAL_TZ], ["UTC", "UTC"]];
     openDialog(`
       <h2>${t(kind === "daily" ? "clock_title_daily" : "clock_title_weekly")}</h2>
       <div class="stack">
@@ -419,6 +419,7 @@
       <div class="t-name">${esc(L(tk.name))}
         ${tk.scope === "account" ? `<span class="badge shared" title="${t("shared_hint")}">${t("shared")}</span>` : ""}
         ${tk.max > 1 ? `<span class="badge">${v}/${tk.max}</span>` : ""}
+        ${tk.sure === false ? `<span class="badge" title="${t("unconfirmed_hint")}">${t("unconfirmed")}</span>` : ""}
       </div>
       <div class="t-ctrl">
         ${ctrl}
