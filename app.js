@@ -12,7 +12,7 @@
       il_ph: "Nuevo Item Level", il_update: "Actualizar", you_are_here: "estás acá",
       guide_title: "Cómo subir tu Item Level", guide_hint: "Paso a paso según los requisitos del global. Tu etapa se abre sola según tu Item Level; marcá lo que ya hiciste.",
       pro_tips: "Consejos pro",
-      tab_transfers: "Traspasos",
+      tab_transfers: "Traspasos", tab_craft: "Crafteo", faction: "Facción",
       k_title: "Kinah por personaje", k_free: "Sin bindear", k_bound: "Bindeado", k_send: "Enviar al main",
       k_ready: "Listo para pasar desde alters", k_log: "Envíos",
       k_hint: "Anotá el Kinah de cada uno (acepta 4.8m, 300k). Solo el sin bindear se puede mandar al main.",
@@ -58,7 +58,7 @@
       il_ph: "New Item Level", il_update: "Update", you_are_here: "you are here",
       guide_title: "How to raise your Item Level", guide_hint: "Step by step using global requirements. Your stage opens automatically from your Item Level; tick what you have done.",
       pro_tips: "Pro tips",
-      tab_transfers: "Transfers",
+      tab_transfers: "Transfers", tab_craft: "Crafting", faction: "Faction",
       k_title: "Kinah per character", k_free: "Unbound", k_bound: "Bound", k_send: "Send to main",
       k_ready: "Ready to move from alts", k_log: "Transfers",
       k_hint: "Log each character's Kinah (accepts 4.8m, 300k). Only unbound Kinah can be sent to your main.",
@@ -137,6 +137,7 @@
     for (const c of state.chars) {
       c.kinah ||= { free: 0, bound: 0 };
       c.guide ||= {};
+      c.faction ||= state.faction;
       if (c.hv !== 2) {
         DATA.tasks.forEach((tk) => { if (tk.id !== "funnel" && !(tk.id in c.hidden)) c.hidden[tk.id] = false; });
         c.hv = 2;
@@ -360,7 +361,7 @@
 
   function charDialog(ch) {
     const isNew = !ch;
-    ch = ch || { name: "", cls: DATA.classes[0], role: state.chars.some((c) => c.role === "main") ? "alt" : "main" };
+    ch = ch || { name: "", cls: DATA.classes[0], faction: state.faction, role: state.chars.some((c) => c.role === "main") ? "alt" : "main" };
     openDialog(`
       <h2>${t(isNew ? "new_char" : "edit_char")}</h2>
       <div class="stack">
@@ -370,6 +371,10 @@
           <label class="field">${t("role")}<select name="role">
             <option value="main" ${ch.role === "main" ? "selected" : ""}>${t("main")}</option>
             <option value="alt" ${ch.role === "alt" ? "selected" : ""}>${t("alt")}</option>
+          </select></label>
+          <label class="field">${t("faction")}<select name="faction">
+            <option value="elyos" ${ch.faction === "elyos" ? "selected" : ""}>${t("elyos")}</option>
+            <option value="asmodian" ${ch.faction === "asmodian" ? "selected" : ""}>${t("asmodian")}</option>
           </select></label>
         </div>
         ${isNew ? `<p class="hint">${t("alt_note")}</p>` : ""}
@@ -382,12 +387,12 @@
       (fd) => {
         const name = String(fd.get("name")).trim();
         if (!name) return false;
-        const role = fd.get("role"), cls = fd.get("cls");
+        const role = fd.get("role"), cls = fd.get("cls"), faction = fd.get("faction");
         if (isNew) {
-          const c = { id: uid(), name, cls, role, hidden: {}, hv: 2, prog: {}, cp: [], ms: {}, goals: [], notes: "", kinah: { free: 0, bound: 0 } };
+          const c = { id: uid(), name, cls, role, faction, hidden: {}, hv: 2, prog: {}, cp: [], ms: {}, goals: [], notes: "", kinah: { free: 0, bound: 0 } };
           state.chars.push(c);
           state.active = c.id;
-        } else Object.assign(ch, { name, cls, role });
+        } else Object.assign(ch, { name, cls, role, faction });
         save(); render();
       },
       (e) => {
@@ -702,7 +707,7 @@
   function render() {
     applyChrome();
     renderRoster();
-    ({ checklist: renderChecklist, overview: renderOverview, progress: renderProgress, tips: renderTips, transfers: renderTransfers, settings: renderSettings }[state.tab] || renderChecklist)();
+    ({ checklist: renderChecklist, overview: renderOverview, progress: renderProgress, tips: renderTips, transfers: renderTransfers, craft: () => window.AionCraft.render($view), settings: renderSettings }[state.tab] || renderChecklist)();
   }
 
   // ---------- Events ----------
@@ -808,6 +813,10 @@
     } else return;
     save(); render();
   });
+
+  window.AionApp = {
+    get state() { return state; }, save, t, L, esc, activeChar, render
+  };
 
   // ---------- Boot ----------
   applyResets();
