@@ -1,0 +1,297 @@
+:root {
+  --font-display: "Marcellus", Georgia, serif;
+  --font-body: "Figtree", system-ui, sans-serif;
+  --r-sm: 6px;
+  --r-lg: 14px;
+}
+
+/* Asmodian: noche del Abyss */
+:root[data-faction="asmodian"] {
+  --bg: #17152a;
+  --bg-deep: #100e1f;
+  --surface: #211e38;
+  --surface-2: #2b2747;
+  --line: #3a355c;
+  --ink: #e9e5f5;
+  --ink-soft: #a9a3c6;
+  --aether: #8fd6e3;
+  --gold: #d9ae5c;
+  --danger: #e0707a;
+  --ring-track: #2e2a4c;
+  color-scheme: dark;
+}
+
+/* Elyos: cielo de Atreia */
+:root[data-faction="elyos"] {
+  --bg: #eaf0f3;
+  --bg-deep: #dde6eb;
+  --surface: #f9fbfc;
+  --surface-2: #eef3f6;
+  --line: #c9d6de;
+  --ink: #1b2a36;
+  --ink-soft: #566877;
+  --aether: #16707f;
+  --gold: #a0721a;
+  --danger: #b43b48;
+  --ring-track: #d3dee5;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 16px/1.5 var(--font-body);
+  max-width: 1120px;
+  margin-inline: auto;
+  padding: 0 16px 48px;
+}
+
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; margin: 0; }
+h2 { font-size: 1.6rem; }
+h3 { font-size: 1.2rem; }
+
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--aether); outline-offset: 2px; }
+
+.muted { color: var(--ink-soft); }
+
+/* ---------- Top bar ---------- */
+.top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; padding: 20px 0 8px; flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand h1 { font-size: 1.5rem; letter-spacing: .02em; }
+.brand-mark { width: 30px; height: 30px; fill: var(--gold); }
+.top-actions { display: flex; gap: 8px; align-items: center; }
+
+.faction {
+  display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px;
+}
+.faction button {
+  border: 0; background: none; padding: 5px 14px; border-radius: 999px; color: var(--ink-soft);
+}
+.faction button[aria-pressed="true"] { background: var(--surface-2); color: var(--ink); }
+.lang {
+  border: 1px solid var(--line); background: none; border-radius: 999px; padding: 6px 12px;
+  font-weight: 600; font-size: .85rem;
+}
+
+/* ---------- Reset rings (el elemento protagonista) ---------- */
+.clocks {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 12px 0 24px;
+}
+.clock {
+  position: relative;
+  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 20px;
+  padding: 18px 20px;
+  background:
+    radial-gradient(120% 140% at 0% 50%, color-mix(in srgb, var(--aether) 14%, transparent), transparent 60%),
+    var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+}
+.clock.weekly {
+  background:
+    radial-gradient(120% 140% at 0% 50%, color-mix(in srgb, var(--gold) 16%, transparent), transparent 60%),
+    var(--surface);
+}
+.ring { width: 112px; height: 112px; }
+.ring circle { fill: none; stroke-width: 7; }
+.ring .track { stroke: var(--ring-track); }
+.ring .arc { stroke: var(--aether); stroke-linecap: round; transition: stroke-dashoffset .6s ease; }
+.clock.weekly .ring .arc { stroke: var(--gold); }
+.ring .tick { stroke: var(--ring-track); stroke-width: 2; }
+.clock h2 { font-size: 1.15rem; color: var(--ink-soft); }
+.countdown {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4.4vw, 2.9rem);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  margin: 2px 0 6px;
+}
+.countdown small { font-size: .45em; color: var(--ink-soft); margin-left: 2px; margin-right: 8px; }
+.clock-meta { font-size: .88rem; color: var(--ink-soft); }
+.clock-meta b { color: var(--ink); font-weight: 600; }
+.clock-edit {
+  position: absolute; top: 10px; right: 10px;
+  border: 1px solid transparent; background: none; border-radius: var(--r-sm);
+  padding: 4px 8px; font-size: .85rem; color: var(--ink-soft);
+}
+.clock-edit:hover { border-color: var(--line); color: var(--ink); }
+
+/* ---------- Roster chips ---------- */
+.roster { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  border: 1px solid var(--line); background: var(--surface);
+  padding: 6px 14px 6px 6px; border-radius: 999px;
+}
+.chip[aria-current="true"] { border-color: var(--gold); box-shadow: inset 0 0 0 1px var(--gold); }
+.chip .sigil {
+  width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+  font-family: var(--font-display); font-size: .95rem;
+  background: var(--surface-2); color: var(--aether);
+}
+.chip.main .sigil { color: var(--gold); }
+.chip .who { display: flex; flex-direction: column; line-height: 1.15; text-align: left; }
+.chip .who span { font-size: .75rem; color: var(--ink-soft); }
+.chip.add { padding: 6px 14px; border-style: dashed; color: var(--ink-soft); }
+
+/* ---------- Tabs ---------- */
+.tabs {
+  display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 20px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.tabs button {
+  border: 0; background: none; padding: 10px 14px; color: var(--ink-soft);
+  border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; font-weight: 500;
+}
+.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--gold); }
+
+/* ---------- Checklist ---------- */
+.lists { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.list-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.list-head .pct { font-variant-numeric: tabular-nums; color: var(--ink-soft); font-size: .9rem; }
+.bar { height: 4px; background: var(--ring-track); border-radius: 2px; overflow: hidden; margin-bottom: 10px; }
+.bar i { display: block; height: 100%; background: var(--aether); transition: width .4s ease; }
+.weekly-list .bar i { background: var(--gold); }
+
+.task {
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--line);
+}
+.task:last-child { border-bottom: 0; }
+.task .t-name { font-weight: 600; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.task.done .t-name { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--line); }
+.task .t-desc { grid-column: 1 / -1; font-size: .85rem; color: var(--ink-soft); max-width: 62ch; }
+.badge {
+  font-size: .72rem; font-weight: 600; padding: 1px 8px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--ink-soft); text-decoration: none;
+}
+.badge.shared { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
+.t-ctrl { display: flex; align-items: center; gap: 6px; }
+
+/* Cargas: una piedra por uso */
+.pips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; max-width: 190px; }
+.pip {
+  width: 18px; height: 18px; padding: 0; border-radius: 50%;
+  border: 1.5px solid var(--line); background: transparent;
+}
+.pip.on { background: var(--aether); border-color: var(--aether); }
+.weekly-list .pip.on { background: var(--gold); border-color: var(--gold); }
+.pip.single { width: 24px; height: 24px; border-radius: var(--r-sm); position: relative; }
+.pip.single.on::after {
+  content: ""; position: absolute; left: 7px; top: 3px; width: 6px; height: 11px;
+  border: solid var(--bg); border-width: 0 2.5px 2.5px 0; transform: rotate(45deg);
+}
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: var(--r-sm); }
+.stepper button { border: 0; background: none; width: 30px; height: 30px; }
+.stepper output { min-width: 52px; text-align: center; font-variant-numeric: tabular-nums; font-size: .9rem; }
+.icon-btn {
+  border: 0; background: none; color: var(--ink-soft); padding: 4px 6px; border-radius: var(--r-sm); font-size: .8rem;
+}
+.icon-btn:hover { color: var(--ink); background: var(--surface-2); }
+.list-foot { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+
+/* ---------- Generic ---------- */
+.btn {
+  border: 1px solid var(--line); background: var(--surface); border-radius: var(--r-sm);
+  padding: 8px 14px; font-weight: 500;
+}
+.btn:hover { border-color: var(--ink-soft); }
+.btn.primary { background: var(--gold); border-color: var(--gold); color: var(--bg-deep); font-weight: 600; }
+.btn.danger { color: var(--danger); }
+.btn.small { padding: 4px 10px; font-size: .85rem; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 20px; }
+.stack > * + * { margin-top: 16px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+
+label.field { display: flex; flex-direction: column; gap: 4px; font-size: .88rem; color: var(--ink-soft); }
+input[type="text"], input[type="number"], input[type="date"], input:not([type]), select, textarea {
+  background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-sm); padding: 8px 10px; color: var(--ink);
+}
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+.row > .field { flex: 1 1 140px; }
+
+.empty { padding: 40px 20px; text-align: center; }
+.empty p { max-width: 44ch; margin: 8px auto 16px; color: var(--ink-soft); }
+
+/* Overview table */
+.table-wrap { overflow-x: auto; }
+table.matrix { border-collapse: collapse; width: 100%; font-size: .9rem; }
+.matrix th, .matrix td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; }
+.matrix th:first-child, .matrix td:first-child { text-align: left; position: sticky; left: 0; background: var(--bg); }
+.matrix thead th { font-weight: 600; color: var(--ink-soft); font-size: .8rem; }
+.matrix .full { color: var(--aether); font-weight: 600; }
+.matrix .part { color: var(--gold); }
+.matrix .hidden { color: var(--line); }
+
+/* Progress */
+.cp-now { font-family: var(--font-display); font-size: 2.6rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.spark { width: 100%; height: 90px; display: block; margin-top: 12px; }
+.spark path.line { fill: none; stroke: var(--aether); stroke-width: 2; }
+.spark path.area { fill: color-mix(in srgb, var(--aether) 14%, transparent); stroke: none; }
+.spark line.gate { stroke: var(--gold); stroke-dasharray: 3 4; stroke-width: 1; }
+.gates { list-style: none; padding: 0; margin: 12px 0 0; font-size: .9rem; }
+.gates li { display: flex; gap: 10px; padding: 4px 0; }
+.gates li b { font-variant-numeric: tabular-nums; min-width: 3.5em; }
+.gates li.reached { color: var(--ink-soft); }
+.gates li.reached b { color: var(--aether); }
+.ms-group h3 { margin-bottom: 6px; }
+.check { display: flex; gap: 10px; align-items: center; padding: 5px 0; }
+.check input { width: 18px; height: 18px; accent-color: var(--aether); }
+.goal { display: flex; gap: 10px; align-items: center; padding: 5px 0; }
+.goal span { flex: 1; }
+.goal.done span { text-decoration: line-through; color: var(--ink-soft); }
+
+/* Tips */
+.tips { columns: 2 320px; column-gap: 20px; }
+.tip { break-inside: avoid; margin-bottom: 20px; }
+.tip ul { margin: 8px 0 0; padding-left: 18px; }
+.tip li { margin-bottom: 6px; max-width: 60ch; }
+.tip li::marker { color: var(--gold); }
+
+/* Dialog */
+dialog {
+  border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface); color: var(--ink);
+  padding: 24px; width: min(460px, calc(100vw - 32px));
+}
+dialog::backdrop { background: rgb(8 6 20 / .6); }
+dialog h2 { margin-bottom: 16px; font-size: 1.4rem; }
+dialog .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.hint { font-size: .82rem; color: var(--ink-soft); margin: 4px 0 0; }
+
+.foot { margin-top: 48px; font-size: .82rem; color: var(--ink-soft); }
+
+@media (max-width: 760px) {
+  .clocks, .lists, .grid2 { grid-template-columns: 1fr; }
+  .ring { width: 84px; height: 84px; }
+  .clock { gap: 14px; padding: 16px; }
+  .pips { max-width: 140px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+
+/* Evita desbordes horizontales en grids */
+.lists > *, .grid2 > *, .clock > div { min-width: 0; }
+.clock-meta { overflow-wrap: anywhere; }
+.task .icon-btn[data-toggle-hide] { opacity: .5; }
+.task:hover .icon-btn[data-toggle-hide], .icon-btn[data-toggle-hide]:focus-visible { opacity: 1; }
+
+@media (max-width: 560px) {
+  .top { padding-top: 14px; }
+  .brand h1 { font-size: 1.25rem; }
+  .task { grid-template-columns: 1fr; }
+  .t-ctrl { justify-content: space-between; }
+  .pips { justify-content: flex-start; max-width: none; }
+  .clock-edit { top: 6px; right: 6px; }
+}

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es" data-faction="asmodian">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AION 2 Tracker</title>
+  <meta name="description" content="Checklist diaria y semanal de AION 2 para tu main y tus alters, con contadores de reset por zona horaria.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M16 4c-3 6-9 8-13 8 3 3 7 4 10 3-2 3-2 8 3 13 5-5 5-10 3-13 3 1 7 0 10-3-4 0-10-2-13-8z' fill='%23d9ae5c'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4c-3 6-9 8-13 8 3 3 7 4 10 3-2 3-2 8 3 13 5-5 5-10 3-13 3 1 7 0 10-3-4 0-10-2-13-8z"/></svg>
+      <h1>AION 2 Tracker</h1>
+    </div>
+    <div class="top-actions">
+      <div class="faction" role="group" aria-label="Tema">
+        <button type="button" data-set-faction="elyos" data-i18n="elyos">Elyos</button>
+        <button type="button" data-set-faction="asmodian" data-i18n="asmodian">Asmodian</button>
+      </div>
+      <button type="button" class="lang" id="langBtn">EN</button>
+    </div>
+  </header>
+
+  <section class="clocks" id="clocks" aria-label="Resets"></section>
+
+  <nav class="roster" id="roster" aria-label="Personajes"></nav>
+
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="checklist" data-i18n="tab_checklist">Checklist</button>
+    <button role="tab" data-tab="overview" data-i18n="tab_overview">Roster</button>
+    <button role="tab" data-tab="progress" data-i18n="tab_progress">Progresión</button>
+    <button role="tab" data-tab="tips" data-i18n="tab_tips">Consejos</button>
+    <button role="tab" data-tab="settings" data-i18n="tab_settings">Ajustes</button>
+  </nav>
+
+  <main id="view"></main>
+
+  <footer class="foot">
+    <p data-i18n="footer">Proyecto de fans, sin relación con NCSOFT. Tus datos se guardan solo en este navegador.</p>
+  </footer>
+
+  <dialog id="dlg"></dialog>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
