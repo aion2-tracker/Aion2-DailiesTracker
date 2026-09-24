@@ -295,3 +295,4 @@ dialog .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top
   .pips { justify-content: flex-start; max-width: none; }
   .clock-edit { top: 6px; right: 6px; }
 }
+.tasks-table td:nth-child(2) { text-align: left; white-space: normal; }

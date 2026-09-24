@@ -15,7 +15,7 @@
       resets_at: "Resetea", your_time: "en tu hora", every_day: "todos los días",
       daily: "Diarias", weekly: "Semanales", shared: "compartido", shared_hint: "Compartido por todo el roster",
       hide: "Ocultar", show_hidden: "Mostrar ocultas", hide_hidden: "Esconder ocultas", unhide: "Mostrar",
-      add_char: "Agregar personaje", edit_char: "Editar personaje", new_char: "Nuevo personaje",
+      add_char: "Agregar personaje", edit_char: "Editar personaje", characters: "Personajes", edit: "Editar", new_char: "Nuevo personaje",
       name: "Nombre", cls: "Clase", role: "Rol", main: "Main", alt: "Alter",
       save: "Guardar", cancel: "Cancelar", delete: "Borrar", add: "Agregar",
       no_chars_title: "Empezá por tu main",
@@ -50,7 +50,7 @@
       resets_at: "Resets", your_time: "your time", every_day: "every day",
       daily: "Daily", weekly: "Weekly", shared: "shared", shared_hint: "Shared by the whole roster",
       hide: "Hide", show_hidden: "Show hidden", hide_hidden: "Collapse hidden", unhide: "Show",
-      add_char: "Add character", edit_char: "Edit character", new_char: "New character",
+      add_char: "Add character", edit_char: "Edit character", characters: "Characters", edit: "Edit", new_char: "New character",
       name: "Name", cls: "Class", role: "Role", main: "Main", alt: "Alt",
       save: "Save", cancel: "Cancel", delete: "Delete", add: "Add",
       no_chars_title: "Start with your main",
@@ -521,13 +521,22 @@
     $view.innerHTML = `<div class="grid2">
       <section class="panel">
         <h3>${t("tasks")}</h3><p class="hint">${t("tasks_hint")}</p>
-        <div class="table-wrap"><table class="matrix">
+        <div class="table-wrap"><table class="matrix tasks-table">
           <thead><tr><th>${t("on")}</th><th style="text-align:left">${t("name")}</th><th>${t("charges")}</th><th></th></tr></thead>
           <tbody><tr><th colspan="4" style="text-align:left"><h3>${t("daily")}</h3></th></tr>${rows("daily")}
           <tr><th colspan="4" style="text-align:left"><h3>${t("weekly")}</h3></th></tr>${rows("weekly")}</tbody>
         </table></div>
       </section>
       <div class="stack">
+        <section class="panel">
+          <h3>${t("characters")}</h3>
+          ${state.chars.length ? state.chars.map((c) => `<div class="goal">
+            <span>${esc(c.name)} <span class="muted">${t(c.role)} · ${esc(c.cls)}</span></span>
+            <button class="btn small" data-edit-char-id="${c.id}">${t("edit")}</button>
+            <button class="btn small danger" data-del-char="${c.id}">${t("delete")}</button>
+          </div>`).join("") : `<p class="muted">${t("overview_empty")}</p>`}
+          <div style="margin-top:10px"><button class="btn small" data-add-char>+ ${t("add_char")}</button></div>
+        </section>
         <section class="panel">
           <h3>${t("custom_task")}</h3>
           <form class="stack" data-custom-form style="margin-top:10px">
@@ -588,6 +597,16 @@
     if (d.char) { state.active = d.char; save(); render(); return; }
     if ("addChar" in d) { charDialog(null); return; }
     if ("editChar" in d && ch) { charDialog(ch); return; }
+    if (d.editCharId) { charDialog(state.chars.find((c) => c.id === d.editCharId)); return; }
+    if (d.delChar) {
+      const c = state.chars.find((x) => x.id === d.delChar);
+      if (c && confirm(`${t("del_char_confirm")}\n\n${c.name}`)) {
+        state.chars = state.chars.filter((x) => x !== c);
+        if (state.active === c.id) state.active = state.chars[0]?.id ?? null;
+        save(); render();
+      }
+      return;
+    }
     if (d.clock) { clockDialog(d.clock); return; }
     if (d.set && ch) {
       const tk = allTasks().find((x) => x.id === d.set);
