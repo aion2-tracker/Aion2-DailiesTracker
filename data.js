@@ -152,6 +152,59 @@ window.AION_DATA = {
     { cp: 2200, es: "Expediciones de 3 estrellas (recomendado)", en: "3-star expeditions (recommended)" }
   ],
 
+  // Camino para subir Item Level (etapas según los umbrales globales). sure: false = viene de KR, sin confirmar en global.
+  ilGuide: [
+    { from: 0, to: 700,
+      title: { es: "Base: nivel 45 y poder estático", en: "Foundation: level 45 and static power" },
+      steps: [
+        { id: "g1_quests", es: "Terminá la historia y las quests secundarias hasta nivel 45.", en: "Finish the story and side quests up to level 45." },
+        { id: "g1_sealed", es: "Hacé las Sealed Dungeons y los Strongholds: dan poder permanente y mejoran el cinturón.", en: "Clear Sealed Dungeons and Strongholds: permanent power and belt upgrades." },
+        { id: "g1_pantheon", es: "Completá lo que puedas del Pantheon (pinturas y estatuas): suma stats a toda la cuenta.", en: "Fill what you can of the Pantheon (paintings and statues): account-wide stats." },
+        { id: "g1_amulet", es: "Empezá a mejorar el Revelation Amulet y el cinturón: no se reemplazan nunca.", en: "Start enhancing the Revelation Amulet and the belt: you never replace them." }
+      ] },
+    { from: 700, to: 1400,
+      title: { es: "Primeras Conquest: Krao Cave y Draupnir Cave", en: "First Conquests: Krao Cave and Draupnir Cave" },
+      steps: [
+        { id: "g2_conquest", es: "Corré Conquest en Krao Cave y Draupnir Cave todos los días.", en: "Run Conquest in Krao Cave and Draupnir Cave every day." },
+        { id: "g2_voucher", es: "Guardá los Gear Change Voucher (recompensa segura de cada Conquest): 1 convierte un arma, 2 craftean un guard.", en: "Keep Gear Change Vouchers (guaranteed Conquest reward): 1 converts a weapon, 2 craft a guard." },
+        { id: "g2_draupnir", sure: false, es: "Para armadura, Draupnir rinde más; en Krao Cave el arma cae poco.", en: "For armor, Draupnir pays better; weapons rarely drop in Krao Cave." },
+        { id: "g2_abyss", sure: false, es: "Gastá Abyss Points en accesorios, anillos primero.", en: "Spend Abyss Points on accessories, rings first." },
+        { id: "g2_weekly", es: "No dejes pasar Nightmare, Shugo Festival ni Ascension Trial: todo suma Item Level.", en: "Don't skip Nightmare, Shugo Festival or Ascension Trial: it all adds Item Level." }
+      ] },
+    { from: 1400, to: 2100,
+      title: { es: "Urugugu Canyon, Arcana y Dragon Lord", en: "Urugugu Canyon, Arcana and Dragon Lord" },
+      steps: [
+        { id: "g3_urugugu", es: "Pasá a Conquest en Urugugu Canyon.", en: "Move up to Conquest in Urugugu Canyon." },
+        { id: "g3_arcana", sure: false, es: "Transcendence para cartas Arcana: cada carta simple suma ~20 de Item Level y las verdes ~40.", en: "Transcendence for Arcana cards: each basic card adds ~20 Item Level, green ones ~40." },
+        { id: "g3_blue", es: "Subí el equipo azul que vayas a conservar hasta +10 (el tope en global).", en: "Take the blue gear you'll keep to +10 (the global cap)." },
+        { id: "g3_dragonlord", es: "Crafteá el primer tier de Dragon Lord: los tiers siguientes salen por transfer crafting.", en: "Craft the first Dragon Lord tier: higher tiers come from transfer crafting." },
+        { id: "g3_draconic", es: "Juntá materiales Draconic: caen sin bindear, así que los alters también aportan.", en: "Stockpile Draconic materials: they drop unbound, so alts can contribute." }
+      ] },
+    { from: 2100, to: 99999,
+      title: { es: "Endgame: Fire Temple, Ludra y optimización", en: "Endgame: Fire Temple, Ludra and optimization" },
+      steps: [
+        { id: "g4_fire", es: "Corré Conquest en Fire Temple (armas) y Ferocious Horn Den (para completar huecos).", en: "Run Conquest in Fire Temple (weapons) and Ferocious Horn Den (to fill gaps)." },
+        { id: "g4_ludra", es: "Entrá a Sanctuary: Abyssal Forge Ludra. El brazalete se craftea desde el día 1 con 3 vouchers + 5M Kinah.", en: "Join Sanctuary: Abyssal Forge Ludra. The bracelet is craftable from day 1 with 3 vouchers + 5M Kinah." },
+        { id: "g4_transfer", es: "Subí el Dragon Lord de tier con transfer crafting: conserva enhance, amplificación y soulbind.", en: "Tier up Dragon Lord with transfer crafting: it keeps enhancement, amplification and soulbind." },
+        { id: "g4_manastones", sure: false, es: "Poné manastones: el equipo azul usa 3 slots de grado bajo; el Unique, 4 de grado alto.", en: "Socket manastones: blue gear takes 3 lower-grade slots; Unique takes 4 higher-grade." },
+        { id: "g4_soulbind", es: "Recién ahora optimizá el soulbind: en global las tiradas son más bajas que en KR.", en: "Only now optimize soulbind: global rolls are lower than in KR." }
+      ] }
+  ],
+
+  proTips: [
+    { es: "Orden de inversión: Revelation Amulet y cinturón primero (no se reemplazan), después el arma, y el resto con cuidado.",
+      en: "Investment order: Revelation Amulet and belt first (never replaced), then the weapon, and the rest sparingly." },
+    { es: "No sobre-inviertas en equipo verde: en global el tope es +5.", en: "Don't overinvest in green gear: the global cap is +5." },
+    { sure: false, es: "Un enhance fallido no rompe el item. Si lo extraés, solo recuperás las piedras, no el Kinah ni las manastones.",
+      en: "A failed enhance doesn't break the item. Extracting it refunds only the stones, not the Kinah or manastones." },
+    { es: "El Dragon Lord crafteado es inversión segura: el transfer crafting conserva todo lo que le pusiste.",
+      en: "Crafted Dragon Lord is a safe investment: transfer crafting keeps everything you put into it." },
+    { es: "No gastes en soulbind hasta tener el equipo que vas a conservar.", en: "Don't spend on soulbind until you have keeper gear." },
+    { sure: false, es: "La Odyle Energy es el cuello de botella: comprá las 7 semanales siempre.", en: "Odyle Energy is the bottleneck: always buy the weekly 7." },
+    { es: "Hacé los gastos grandes después del reset semanal, cuando entra el ingreso de la semana.", en: "Make big spends after the weekly reset, when the week's income comes in." },
+    { es: "Invertí primero en el slot que te bloquea el próximo contenido, no en todo parejo.", en: "Invest first in the slot blocking your next content, not everything evenly." }
+  ],
+
   tips: [
     { title: { es: "Qué cambia en global", en: "What's different on global" },
       body: { es: ["Arranca con una Season 1 modificada: trae mejoras de calidad de vida de Corea, pero no su contenido del último año.",

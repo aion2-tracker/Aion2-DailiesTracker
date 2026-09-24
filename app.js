@@ -8,6 +8,10 @@
   // ---------- i18n ----------
   const STR = {
     es: {
+      il_next: "Próximo", il_left: "faltan", il_max: "Ya alcanzás todo el contenido de la lista.", il_since: "desde",
+      il_ph: "Nuevo Item Level", il_update: "Actualizar", you_are_here: "estás acá",
+      guide_title: "Cómo subir tu Item Level", guide_hint: "Paso a paso según los requisitos del global. Tu etapa se abre sola según tu Item Level; marcá lo que ya hiciste.",
+      pro_tips: "Consejos pro",
       tab_transfers: "Traspasos",
       k_title: "Kinah por personaje", k_free: "Sin bindear", k_bound: "Bindeado", k_send: "Enviar al main",
       k_ready: "Listo para pasar desde alters", k_log: "Envíos",
@@ -50,6 +54,10 @@
       contribute: "¿Algo desactualizado? Abrí un issue o PR en GitHub."
     },
     en: {
+      il_next: "Next", il_left: "to go", il_max: "You meet every requirement on the list.", il_since: "since",
+      il_ph: "New Item Level", il_update: "Update", you_are_here: "you are here",
+      guide_title: "How to raise your Item Level", guide_hint: "Step by step using global requirements. Your stage opens automatically from your Item Level; tick what you have done.",
+      pro_tips: "Pro tips",
       tab_transfers: "Transfers",
       k_title: "Kinah per character", k_free: "Unbound", k_bound: "Bound", k_send: "Send to main",
       k_ready: "Ready to move from alts", k_log: "Transfers",
@@ -128,6 +136,7 @@
   function migrate() {
     for (const c of state.chars) {
       c.kinah ||= { free: 0, bound: 0 };
+      c.guide ||= {};
       if (c.hv !== 2) {
         DATA.tasks.forEach((tk) => { if (tk.id !== "funnel" && !(tk.id in c.hidden)) c.hidden[tk.id] = false; });
         c.hv = 2;
@@ -497,50 +506,90 @@
       <path class="line" d="M${pts.join(" L")}"/></svg>`;
   }
 
+  function ilTrack(cur) {
+    const gates = DATA.cpGates;
+    const min = Math.min(gates[0].cp - 200, cur), max = Math.max(gates[gates.length - 1].cp + 200, cur);
+    const pos = (v) => Math.max(0, Math.min(100, ((v - min) / (max - min)) * 100)).toFixed(2);
+    return `<div class="il-track" role="img" aria-label="${t("cp")} ${cur}">
+      <div class="il-fill" style="width:${pos(cur)}%"></div>
+      ${gates.map((g, i) => `<span class="il-gate ${cur >= g.cp ? "reached" : ""} ${i % 2 ? "up" : ""}" style="left:${pos(g.cp)}%" title="${g.cp} — ${esc(L(g))}"><i></i><b>${g.cp}</b></span>`).join("")}
+    </div>`;
+  }
+
   function renderProgress() {
     const ch = activeChar();
     if (!ch) { renderChecklist(); return; }
+    ch.guide ||= {};
     const cur = ch.cp.length ? ch.cp[ch.cp.length - 1].v : 0;
-    const today = new Date().toISOString().slice(0, 10);
-    $view.innerHTML = `<div class="grid2">
-      <div class="stack">
-        <section class="panel">
+    const first = ch.cp[0];
+    const next = DATA.cpGates.find((g) => g.cp > cur);
+    const stageIdx = DATA.ilGuide.findIndex((st) => cur >= st.from && cur < st.to);
+    const stage = (st, i) => {
+      const done = st.steps.filter((x) => ch.guide[x.id]).length;
+      const range = st.to > 90000 ? `${st.from.toLocaleString(state.lang)}+` : `${st.from.toLocaleString(state.lang)} – ${st.to.toLocaleString(state.lang)}`;
+      return `<details class="stage ${i === stageIdx ? "current" : ""} ${i < stageIdx ? "past" : ""}" ${i === stageIdx ? "open" : ""}>
+        <summary>
+          <span class="stage-range">${range}</span>
+          <span class="stage-title">${esc(L(st.title))}${i === stageIdx ? ` <span class="badge here">${t("you_are_here")}</span>` : ""}</span>
+          <span class="stage-count">${done}/${st.steps.length}</span>
+        </summary>
+        ${st.steps.map((x) => `<label class="check step"><input type="checkbox" data-guide="${x.id}" ${ch.guide[x.id] ? "checked" : ""}>
+          <span>${esc(L(x))}${x.sure === false ? ` <span class="badge">${t("unconfirmed")}</span>` : ""}</span></label>`).join("")}
+      </details>`;
+    };
+    $view.innerHTML = `
+      <section class="panel il-hero">
+        <div class="il-now">
           <h3>${t("cp")}</h3>
           <div class="cp-now">${cur ? cur.toLocaleString(state.lang) : "—"}</div>
-          ${ch.cp.length > 1 ? sparkline(ch.cp) : `<p class="muted">${t("cp_empty")}</p>`}
-          <form class="row" data-cp-form style="margin-top:12px">
-            <label class="field">${t("cp")}<input type="number" name="v" min="0" step="1" required></label>
-            <label class="field"><span>&nbsp;</span><input type="date" name="d" value="${today}" required></label>
-            <button class="btn primary">${t("cp_add")}</button>
-          </form>
-          ${ch.cp.length ? `<details style="margin-top:12px"><summary class="muted">${t("history")} (${ch.cp.length})</summary>
-            ${ch.cp.slice().reverse().map((p) => `<div class="goal"><span>${esc(p.d)} — <b>${p.v.toLocaleString(state.lang)}</b></span>
-              <button class="icon-btn" data-del-cp="${esc(p.id)}">${t("delete")}</button></div>`).join("")}</details>` : ""}
-          <h3 style="margin-top:18px">${t("gates")}</h3>
-          <ul class="gates">${DATA.cpGates.map((g) => `<li class="${cur >= g.cp ? "reached" : ""}"><b>${g.cp}</b><span>${esc(L(g))}</span></li>`).join("")}</ul>
-        </section>
-        <section class="panel">
-          <h3>${t("goals")}</h3>
-          ${ch.goals.map((g) => `<div class="goal ${g.done ? "done" : ""}">
-            <input type="checkbox" data-goal="${g.id}" ${g.done ? "checked" : ""} aria-label="${esc(g.text)}">
-            <span>${esc(g.text)}</span><button class="icon-btn" data-del-goal="${g.id}">${t("delete")}</button></div>`).join("")}
-          <form class="row" data-goal-form style="margin-top:8px">
-            <label class="field"><input name="text" placeholder="${t("goal_ph")}" maxlength="80" required aria-label="${t("goals")}"></label>
-            <button class="btn">${t("add")}</button>
-          </form>
-        </section>
-        <section class="panel">
-          <label class="field"><h3 style="color:var(--ink)">${t("notes")}</h3>
-            <textarea rows="5" data-notes placeholder="${t("notes_ph")}">${esc(ch.notes)}</textarea></label>
-        </section>
-      </div>
-      <section class="panel stack">
-        <h3>${t("milestones")}</h3>
-        ${DATA.milestones.map((grp) => `<div class="ms-group"><p class="muted" style="margin:0 0 4px">${esc(L(grp.group))}</p>
-          ${grp.items.map((it) => `<label class="check"><input type="checkbox" data-ms="${it.id}" ${ch.ms[it.id] ? "checked" : ""}>${esc(L(it))}</label>`).join("")}
-        </div>`).join("")}
+          <p class="muted il-sub">${first && ch.cp.length > 1 ? `+${(cur - first.v).toLocaleString(state.lang)} ${t("il_since")} ${esc(first.d)}` : t("cp_empty")}</p>
+        </div>
+        <div class="il-mid">
+          <p class="il-next">${next ? `${t("il_next")}: <b>${esc(L(next))}</b> · ${t("il_left")} ${(next.cp - cur).toLocaleString(state.lang)}` : t("il_max")}</p>
+          ${ilTrack(cur)}
+        </div>
+        <form class="il-form" data-cp-form>
+          <input type="number" name="v" min="0" step="1" required placeholder="${t("il_ph")}" aria-label="${t("il_ph")}">
+          <button class="btn primary">${t("il_update")}</button>
+        </form>
+        ${ch.cp.length ? `<details class="il-history"><summary class="muted">${t("history")} (${ch.cp.length})</summary>
+          ${ch.cp.length > 1 ? sparkline(ch.cp) : ""}
+          ${ch.cp.slice().reverse().map((p) => `<div class="goal"><span>${esc(p.d)} — <b>${p.v.toLocaleString(state.lang)}</b></span>
+            <button class="icon-btn" data-del-cp="${esc(p.id)}">${t("delete")}</button></div>`).join("")}</details>` : ""}
       </section>
-    </div>`;
+      <div class="prog-grid">
+        <div class="stack">
+          <section class="panel">
+            <h3>${t("guide_title")}</h3>
+            <p class="hint">${t("guide_hint")}</p>
+            <div class="stages">${DATA.ilGuide.map(stage).join("")}</div>
+          </section>
+          <section class="panel">
+            <h3>${t("pro_tips")}</h3>
+            <ul class="pro-tips">${DATA.proTips.map((x) => `<li>${esc(L(x))}${x.sure === false ? ` <span class="badge">${t("unconfirmed")}</span>` : ""}</li>`).join("")}</ul>
+          </section>
+        </div>
+        <div class="stack">
+          <section class="panel stack">
+            <h3>${t("milestones")}</h3>
+            ${DATA.milestones.map((grp) => `<div class="ms-group"><p class="muted" style="margin:0 0 4px">${esc(L(grp.group))}</p>
+              ${grp.items.map((it) => `<label class="check"><input type="checkbox" data-ms="${it.id}" ${ch.ms[it.id] ? "checked" : ""}>${esc(L(it))}</label>`).join("")}
+            </div>`).join("")}
+          </section>
+          <section class="panel">
+            <h3>${t("goals")}</h3>
+            ${ch.goals.map((g) => `<div class="goal ${g.done ? "done" : ""}">
+              <input type="checkbox" data-goal="${g.id}" ${g.done ? "checked" : ""} aria-label="${esc(g.text)}">
+              <span>${esc(g.text)}</span><button class="icon-btn" data-del-goal="${g.id}">${t("delete")}</button></div>`).join("")}
+            <form class="il-form" data-goal-form style="margin-top:8px">
+              <input name="text" placeholder="${t("goal_ph")}" maxlength="80" required aria-label="${t("goals")}">
+              <button class="btn">${t("add")}</button>
+            </form>
+            <h3 style="margin-top:18px">${t("notes")}</h3>
+            <textarea rows="4" data-notes placeholder="${t("notes_ph")}" aria-label="${t("notes")}" style="width:100%;margin-top:6px">${esc(ch.notes)}</textarea>
+          </section>
+        </div>
+      </div>`;
   }
 
   function renderTransfers() {
@@ -658,7 +707,7 @@
 
   // ---------- Events ----------
   document.addEventListener("click", (e) => {
-    const el = e.target.closest("button, [data-goal], [data-ms], [data-task-on]");
+    const el = e.target.closest("button, [data-goal], [data-ms], [data-task-on], [data-guide]");
     if (!el || $dlg.contains(el)) return;
     const ch = activeChar();
     const d = el.dataset;
@@ -703,6 +752,7 @@
     if (d.delGoal && ch) { ch.goals = ch.goals.filter((x) => x.id !== d.delGoal); save(); render(); return; }
     if (d.delCp && ch) { ch.cp = ch.cp.filter((x) => x.id !== d.delCp); save(); render(); return; }
     if (d.ms && ch) { ch.ms[d.ms] = el.checked; save(); return; }
+    if (d.guide && ch) { (ch.guide ||= {})[d.guide] = el.checked; save(); render(); return; }
     if (d.taskOn) { (state.overrides[d.taskOn] ||= {}).off = !el.checked; save(); return; }
     if (d.delTask) { state.custom = state.custom.filter((x) => x.id !== d.delTask); delete state.overrides[d.delTask]; save(); render(); return; }
     if ("export" in d) {
@@ -745,7 +795,7 @@
     if ("cpForm" in f.dataset && ch) {
       const v = parseInt(fd.get("v"), 10);
       if (!(v >= 0)) return;
-      ch.cp.push({ id: uid(), d: String(fd.get("d")), v });
+      ch.cp.push({ id: uid(), d: String(fd.get("d") || new Date().toISOString().slice(0, 10)), v });
       ch.cp.sort((a, b) => a.d.localeCompare(b.d));
     } else if ("goalForm" in f.dataset && ch) {
       ch.goals.push({ id: uid(), text: String(fd.get("text")).trim(), done: false });
