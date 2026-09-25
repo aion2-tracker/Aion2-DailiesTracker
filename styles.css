@@ -403,3 +403,14 @@ a.rc-name:hover { text-decoration: underline; }
 
 @media (max-width: 900px) { .craft-grid { grid-template-columns: 1fr; } }
 .rc-filters > .field:first-child { flex-basis: 100%; }
+/* Las etapas se abren solo desde el rango de Item Level */
+.stage summary { cursor: default; }
+.stage-range { cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.stage-range::before { content: ""; width: 0; height: 0; border-left: 5px solid currentColor; border-top: 4px solid transparent; border-bottom: 4px solid transparent; transition: transform .15s ease; }
+.stage[open] .stage-range::before { transform: rotate(90deg); }
+.stage-range:hover { color: var(--ink); }
+.stage summary:focus-visible { outline: none; }
+.stage summary:focus-visible .stage-range { outline: 2px solid var(--aether); outline-offset: 2px; border-radius: 2px; }
+.stage summary { grid-template-columns: 8.5em 1fr auto; }
+.check.step { padding-left: calc(8.5em + 12px); }
+@media (max-width: 900px) { .stage summary { grid-template-columns: 1fr auto; } .check.step { padding-left: 0; } }

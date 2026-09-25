@@ -9,7 +9,7 @@
   const STR = {
     es: {
       il_next: "Próximo", il_left: "faltan", il_max: "Ya alcanzás todo el contenido de la lista.", il_since: "desde",
-      il_ph: "Nuevo Item Level", il_update: "Actualizar", you_are_here: "estás acá",
+      il_ph: "Nuevo Item Level", toggle_stage: "Abrir o cerrar", il_update: "Actualizar", you_are_here: "estás acá",
       guide_title: "Cómo subir tu Item Level", guide_hint: "Paso a paso según los requisitos del global. Tu etapa se abre sola según tu Item Level; marcá lo que ya hiciste.",
       pro_tips: "Consejos pro",
       tab_transfers: "Traspasos", tab_craft: "Crafteo", faction: "Facción",
@@ -55,7 +55,7 @@
     },
     en: {
       il_next: "Next", il_left: "to go", il_max: "You meet every requirement on the list.", il_since: "since",
-      il_ph: "New Item Level", il_update: "Update", you_are_here: "you are here",
+      il_ph: "New Item Level", toggle_stage: "Open or close", il_update: "Update", you_are_here: "you are here",
       guide_title: "How to raise your Item Level", guide_hint: "Step by step using global requirements. Your stage opens automatically from your Item Level; tick what you have done.",
       pro_tips: "Pro tips",
       tab_transfers: "Transfers", tab_craft: "Crafting", faction: "Faction",
@@ -521,6 +521,22 @@
     </div>`;
   }
 
+  // Etapas abiertas por personaje (solo en memoria); sin entrada = se abre la etapa actual
+  const openStages = {};
+  // Solo el rango de Item Level (lado izquierdo) abre y cierra la etapa
+  document.addEventListener("click", (e) => {
+    const sum = e.target.closest(".stage summary");
+    if (sum && e.detail !== 0 && !e.target.closest(".stage-range")) e.preventDefault(); // detail 0 = teclado
+  });
+  document.addEventListener("toggle", (e) => {
+    const st = e.target;
+    if (!st.classList?.contains("stage")) return;
+    const ch = activeChar();
+    if (!ch) return;
+    const set = (openStages[ch.id] ||= new Set([...document.querySelectorAll(".stage[open]")].map((x) => +x.dataset.stage)));
+    if (st.open) set.add(+st.dataset.stage); else set.delete(+st.dataset.stage);
+  }, true);
+
   function renderProgress() {
     const ch = activeChar();
     if (!ch) { renderChecklist(); return; }
@@ -532,9 +548,10 @@
     const stage = (st, i) => {
       const done = st.steps.filter((x) => ch.guide[x.id]).length;
       const range = st.to > 90000 ? `${st.from.toLocaleString(state.lang)}+` : `${st.from.toLocaleString(state.lang)} – ${st.to.toLocaleString(state.lang)}`;
-      return `<details class="stage ${i === stageIdx ? "current" : ""} ${i < stageIdx ? "past" : ""}" ${i === stageIdx ? "open" : ""}>
+      const open = openStages[ch.id] ? openStages[ch.id].has(i) : i === stageIdx;
+      return `<details class="stage ${i === stageIdx ? "current" : ""} ${i < stageIdx ? "past" : ""}" data-stage="${i}" ${open ? "open" : ""}>
         <summary>
-          <span class="stage-range">${range}</span>
+          <span class="stage-range" title="${t("toggle_stage")}">${range}</span>
           <span class="stage-title">${esc(L(st.title))}${i === stageIdx ? ` <span class="badge here">${t("you_are_here")}</span>` : ""}</span>
           <span class="stage-count">${done}/${st.steps.length}</span>
         </summary>
@@ -757,7 +774,13 @@
     if (d.delGoal && ch) { ch.goals = ch.goals.filter((x) => x.id !== d.delGoal); save(); render(); return; }
     if (d.delCp && ch) { ch.cp = ch.cp.filter((x) => x.id !== d.delCp); save(); render(); return; }
     if (d.ms && ch) { ch.ms[d.ms] = el.checked; save(); return; }
-    if (d.guide && ch) { (ch.guide ||= {})[d.guide] = el.checked; save(); render(); return; }
+    if (d.guide && ch) {
+      (ch.guide ||= {})[d.guide] = el.checked; save();
+      // Actualiza solo el contador para no cerrar el desplegable
+      const st = el.closest(".stage"), cnt = st?.querySelector(".stage-count");
+      if (cnt) cnt.textContent = `${st.querySelectorAll("[data-guide]:checked").length}/${st.querySelectorAll("[data-guide]").length}`;
+      return;
+    }
     if (d.taskOn) { (state.overrides[d.taskOn] ||= {}).off = !el.checked; save(); return; }
     if (d.delTask) { state.custom = state.custom.filter((x) => x.id !== d.delTask); delete state.overrides[d.delTask]; save(); render(); return; }
     if ("export" in d) {
