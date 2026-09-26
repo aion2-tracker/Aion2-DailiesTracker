@@ -26,6 +26,7 @@
       resets_at: "Resetea", your_time: "en tu hora", every_day: "todos los días",
       daily: "Diarias", weekly: "Semanales", shared: "compartido", shared_hint: "Compartido por todo el roster",
       show_hidden: "Mostrar ocultas", hide_hidden: "Esconder ocultas",
+      star_hint: "¿Te sirve? Dale una estrella en GitHub",
       add_char: "Agregar personaje", edit_char: "Editar personaje", characters: "Personajes", edit: "Editar", new_char: "Nuevo personaje",
       name: "Nombre", cls: "Clase", role: "Rol", main: "Main", alt: "Alter",
       save: "Guardar", cancel: "Cancelar", delete: "Borrar", add: "Agregar",
@@ -72,6 +73,7 @@
       resets_at: "Resets", your_time: "your time", every_day: "every day",
       daily: "Daily", weekly: "Weekly", shared: "shared", shared_hint: "Shared by the whole roster",
       show_hidden: "Show hidden", hide_hidden: "Collapse hidden",
+      star_hint: "Find it useful? Give it a star on GitHub",
       add_char: "Add character", edit_char: "Edit character", characters: "Characters", edit: "Edit", new_char: "New character",
       name: "Name", cls: "Class", role: "Role", main: "Main", alt: "Alt",
       save: "Save", cancel: "Cancel", delete: "Delete", add: "Add",
@@ -711,7 +713,9 @@
     document.documentElement.lang = state.lang;
     document.querySelectorAll("[data-set-faction]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.setFaction === state.faction)));
     document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
-    document.getElementById("langBtn").textContent = state.lang === "es" ? "EN" : "ES";
+    document.querySelectorAll(".langs [data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === state.lang)));
+    const star = document.getElementById("starLink");
+    star.title = t("star_hint"); star.setAttribute("aria-label", t("star_hint"));
     document.querySelectorAll("#tabs [data-tab]").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === state.tab)));
   }
 
@@ -729,7 +733,7 @@
     const d = el.dataset;
 
     if (d.setFaction) { state.faction = d.setFaction; save(); applyChrome(); return; }
-    if (el.id === "langBtn" || d.lang) { state.lang = d.lang || (state.lang === "es" ? "en" : "es"); save(); renderClocks(); render(); return; }
+    if (d.lang) { state.lang = d.lang; save(); renderClocks(); render(); return; }
     if (d.tab) { state.tab = d.tab; save(); render(); return; }
     if (d.char) { state.active = d.char; save(); render(); return; }
     if ("addChar" in d) { charDialog(null); return; }
@@ -836,4 +840,22 @@
   render();
   setInterval(tickClocks, 1000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) tickClocks(); });
+  loadStars();
+
+  // Contador de estrellas del repo (API pública de GitHub, cacheado 6 h para no gastar el límite por IP)
+  async function loadStars() {
+    const KEY_STARS = "aion2-tracker:stars", $n = document.getElementById("starCount");
+    const show = (n) => { $n.textContent = n > 0 ? n.toLocaleString(state.lang) : ""; };
+    let cache = null;
+    try { cache = JSON.parse(localStorage.getItem(KEY_STARS)); } catch (_) {}
+    if (cache) show(cache.n);
+    if (cache && Date.now() - cache.at < 6 * 3600e3) return;
+    try {
+      const r = await fetch("https://api.github.com/repos/aion2-tracker/Aion2-DailiesTracker");
+      if (!r.ok) return;
+      const n = (await r.json()).stargazers_count;
+      show(n);
+      try { localStorage.setItem(KEY_STARS, JSON.stringify({ n, at: Date.now() })); } catch (_) {}
+    } catch (_) { /* sin red o API caída: queda solo la estrella */ }
+  }
 })();
