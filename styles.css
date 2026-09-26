@@ -91,6 +91,7 @@ button { cursor: pointer; }
 .star svg { width: 15px; height: 15px; fill: currentColor; }
 .star:hover, .star:focus-visible { color: var(--gold); border-color: var(--gold); }
 .star span:empty { display: none; }
+.star-label + span { padding-left: 7px; border-left: 1px solid var(--line); }
 
 /* ---------- Reset rings (el elemento protagonista) ---------- */
 .clocks {
@@ -303,6 +304,8 @@ dialog .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top
   .faction button { padding: 5px 10px; }
   .langs button { padding: 5px 7px; }
   .star { padding: 6px 8px; }
+  .star-label { display: none; }
+  .star-label + span { padding-left: 0; border-left: 0; }
   .task { grid-template-columns: 1fr; }
   .t-ctrl { justify-content: space-between; }
   .pips { justify-content: flex-start; max-width: none; }
