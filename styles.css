@@ -1,3 +1,7 @@
+/* Fuentes locales (SIL OFL, ver fonts/): sin pedidos a Google. Subset latin; Figtree es variable 400-700 */
+@font-face { font-family: "Figtree"; font-style: normal; font-weight: 400 700; font-display: swap; src: url(fonts/figtree-latin.woff2) format("woff2"); }
+@font-face { font-family: "Marcellus"; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/marcellus-latin.woff2) format("woff2"); }
+
 :root {
   --font-display: "Marcellus", Georgia, serif;
   --font-body: "Figtree", system-ui, sans-serif;
@@ -284,8 +288,6 @@ dialog .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top
 /* Evita desbordes horizontales en grids */
 .lists > *, .grid2 > *, .clock > div { min-width: 0; }
 .clock-meta { overflow-wrap: anywhere; }
-.task .icon-btn[data-toggle-hide] { opacity: .5; }
-.task:hover .icon-btn[data-toggle-hide], .icon-btn[data-toggle-hide]:focus-visible { opacity: 1; }
 
 @media (max-width: 560px) {
   .top { padding-top: 14px; }

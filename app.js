@@ -25,7 +25,7 @@
       daily_reset: "Reset diario", weekly_reset: "Reset semanal", adjust: "Ajustar",
       resets_at: "Resetea", your_time: "en tu hora", every_day: "todos los días",
       daily: "Diarias", weekly: "Semanales", shared: "compartido", shared_hint: "Compartido por todo el roster",
-      hide: "Ocultar", show_hidden: "Mostrar ocultas", hide_hidden: "Esconder ocultas", unhide: "Mostrar",
+      show_hidden: "Mostrar ocultas", hide_hidden: "Esconder ocultas",
       add_char: "Agregar personaje", edit_char: "Editar personaje", characters: "Personajes", edit: "Editar", new_char: "Nuevo personaje",
       name: "Nombre", cls: "Clase", role: "Rol", main: "Main", alt: "Alter",
       save: "Guardar", cancel: "Cancelar", delete: "Borrar", add: "Agregar",
@@ -71,7 +71,7 @@
       daily_reset: "Daily reset", weekly_reset: "Weekly reset", adjust: "Adjust",
       resets_at: "Resets", your_time: "your time", every_day: "every day",
       daily: "Daily", weekly: "Weekly", shared: "shared", shared_hint: "Shared by the whole roster",
-      hide: "Hide", show_hidden: "Show hidden", hide_hidden: "Collapse hidden", unhide: "Show",
+      show_hidden: "Show hidden", hide_hidden: "Collapse hidden",
       add_char: "Add character", edit_char: "Edit character", characters: "Characters", edit: "Edit", new_char: "New character",
       name: "Name", cls: "Class", role: "Role", main: "Main", alt: "Alt",
       save: "Save", cancel: "Cancel", delete: "Delete", add: "Add",
@@ -138,10 +138,8 @@
       c.kinah ||= { free: 0, bound: 0 };
       c.guide ||= {};
       c.faction ||= state.faction;
-      if (c.hv !== 2) {
-        DATA.tasks.forEach((tk) => { if (tk.id !== "funnel" && !(tk.id in c.hidden)) c.hidden[tk.id] = false; });
-        c.hv = 2;
-      }
+      // Ya no hay ocultado manual: la visibilidad depende solo del rol
+      delete c.hidden; delete c.hv;
     }
     state.transfers ||= [];
   }
@@ -223,9 +221,8 @@
     });
   }
   const activeTasks = () => allTasks().filter((tk) => !tk.off);
-  // Oculta por defecto según el rol; ch.hidden guarda solo lo que el usuario cambió
-  const defaultHidden = (tk, ch) => (ch.role === "alt" ? tk.alt === false : tk.main === false);
-  const isHidden = (tk, ch) => (tk.id in ch.hidden ? ch.hidden[tk.id] : defaultHidden(tk, ch));
+  // Oculta según el rol: alt:false no se muestra en alters, main:false no se muestra en el main
+  const isHidden = (tk, ch) => (ch.role === "alt" ? tk.alt === false : tk.main === false);
   const activeChar = () => state.chars.find((c) => c.id === state.active) || state.chars[0] || null;
   const progStore = (tk, ch) => (tk.scope === "account" ? state.account.prog : ch.prog);
   const getVal = (tk, ch) => Math.min(progStore(tk, ch)[tk.id] || 0, tk.max);
@@ -389,7 +386,7 @@
         if (!name) return false;
         const role = fd.get("role"), cls = fd.get("cls"), faction = fd.get("faction");
         if (isNew) {
-          const c = { id: uid(), name, cls, role, faction, hidden: {}, hv: 2, prog: {}, cp: [], ms: {}, goals: [], notes: "", kinah: { free: 0, bound: 0 } };
+          const c = { id: uid(), name, cls, role, faction, prog: {}, cp: [], ms: {}, goals: [], notes: "", kinah: { free: 0, bound: 0 } };
           state.chars.push(c);
           state.active = c.id;
         } else Object.assign(ch, { name, cls, role, faction });
@@ -419,7 +416,7 @@
   }
 
   function taskRow(tk, ch) {
-    const v = getVal(tk, ch), hidden = isHidden(tk, ch);
+    const v = getVal(tk, ch);
     let ctrl;
     if (tk.max === 1) {
       ctrl = `<button class="pip single ${v ? "on" : ""}" data-set="${tk.id}" data-v="${v ? 0 : 1}" aria-label="${esc(L(tk.name))}" aria-pressed="${!!v}"></button>`;
@@ -435,10 +432,7 @@
         ${tk.max > 1 ? `<span class="badge">${v}/${tk.max}</span>` : ""}
         ${tk.sure === false ? `<span class="badge" title="${t("unconfirmed_hint")}">${t("unconfirmed")}</span>` : ""}
       </div>
-      <div class="t-ctrl">
-        ${ctrl}
-        <button class="icon-btn" data-toggle-hide="${tk.id}">${hidden ? t("unhide") : t("hide")}</button>
-      </div>
+      <div class="t-ctrl">${ctrl}</div>
       ${L(tk.desc) ? `<div class="t-desc">${esc(L(tk.desc))}</div>` : ""}
     </div>`;
   }
@@ -754,11 +748,6 @@
     if (d.set && ch) {
       const tk = allTasks().find((x) => x.id === d.set);
       setVal(tk, ch, +d.v); save(); render(); return;
-    }
-    if (d.toggleHide && ch) {
-      const tk = allTasks().find((x) => x.id === d.toggleHide);
-      ch.hidden[tk.id] = !isHidden(tk, ch);
-      save(); render(); return;
     }
     if (d.send) {
       const alt = state.chars.find((c) => c.id === d.send), main = state.chars.find((c) => c.role === "main");
