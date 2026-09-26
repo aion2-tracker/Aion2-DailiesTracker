@@ -1,0 +1,62 @@
+<!doctype html>
+<!-- Imagen de vista previa (og.png, 1200x630). Regenerar: node tools/og-image.mjs -->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Figtree"; font-weight: 400 700; src: url(../fonts/figtree-latin.woff2) format("woff2"); }
+  @font-face { font-family: "Marcellus"; src: url(../fonts/marcellus-latin.woff2) format("woff2"); }
+  :root { --bg: #17152a; --surface: #211e38; --line: #3a355c; --ink: #e9e5f5; --ink-soft: #a9a3c6; --aether: #8fd6e3; --gold: #d9ae5c; --track: #2e2a4c; }
+  * { box-sizing: border-box; margin: 0; }
+  body {
+    width: 1200px; height: 630px; overflow: hidden; font-family: "Figtree", sans-serif; color: var(--ink);
+    background:
+      radial-gradient(60% 80% at 100% 50%, color-mix(in srgb, var(--aether) 12%, transparent), transparent 70%),
+      radial-gradient(50% 70% at 0% 100%, color-mix(in srgb, var(--gold) 10%, transparent), transparent 70%),
+      var(--bg);
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 36px; padding: 0 64px;
+  }
+  .brand { display: flex; align-items: center; gap: 22px; }
+  .brand svg { width: 64px; height: 64px; fill: var(--gold); }
+  h1 { font-family: "Marcellus", serif; font-weight: 400; font-size: 80px; letter-spacing: .01em; line-height: 1; white-space: nowrap; }
+  .tag { font-size: 34px; margin: 34px 0 10px; line-height: 1.3; }
+  .tag-en { font-size: 24px; color: var(--ink-soft); }
+  .pills { display: flex; flex-wrap: nowrap; gap: 9px; margin-top: 40px; }
+  .pills span { border: 1px solid var(--line); border-radius: 999px; padding: 7px 15px; font-size: 20px; color: var(--ink-soft); font-weight: 500; }
+  .pills .hl { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); }
+  .rings { display: grid; gap: 26px; }
+  .ring-card { display: flex; align-items: center; gap: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 18px 28px 18px 20px; }
+  .ring-card svg { width: 104px; height: 104px; }
+  .ring-card circle { fill: none; stroke-width: 8; }
+  .ring-card .t { stroke: var(--track); }
+  .ring-card .a { stroke-linecap: round; }
+  .ring-card h2 { font-family: "Marcellus", serif; font-weight: 400; font-size: 24px; color: var(--ink-soft); }
+  .cd { font-family: "Marcellus", serif; font-size: 46px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .cd small { font-size: .45em; color: var(--ink-soft); margin: 0 8px 0 2px; }
+</style>
+</head>
+<body>
+  <div>
+    <div class="brand">
+      <svg viewBox="0 0 32 32"><path d="M16 4c-3 6-9 8-13 8 3 3 7 4 10 3-2 3-2 8 3 13 5-5 5-10 3-13 3 1 7 0 10-3-4 0-10-2-13-8z"/></svg>
+      <h1>AION 2 Tracker</h1>
+    </div>
+    <p class="tag">Dailies y weeklies de tu main y tus alters</p>
+    <p class="tag-en">Daily &amp; weekly checklist for your whole roster</p>
+    <div class="pills">
+      <span class="hl">Global · NA · SA · EU · JP</span>
+      <span>Kinah</span><span>Item Level</span><span>Crafteo</span>
+    </div>
+  </div>
+  <div class="rings">
+    <div class="ring-card">
+      <svg viewBox="0 0 120 120"><circle class="t" cx="60" cy="60" r="48"/><circle class="a" cx="60" cy="60" r="48" stroke="#8fd6e3" stroke-dasharray="301.6" stroke-dashoffset="105" transform="rotate(-90 60 60)"/></svg>
+      <div><h2>Reset diario</h2><div class="cd">07<small>h</small>42<small>m</small></div></div>
+    </div>
+    <div class="ring-card">
+      <svg viewBox="0 0 120 120"><circle class="t" cx="60" cy="60" r="48"/><circle class="a" cx="60" cy="60" r="48" stroke="#d9ae5c" stroke-dasharray="301.6" stroke-dashoffset="190" transform="rotate(-90 60 60)"/></svg>
+      <div><h2>Reset semanal</h2><div class="cd">3<small>d</small>12<small>h</small></div></div>
+    </div>
+  </div>
+</body>
+</html>
