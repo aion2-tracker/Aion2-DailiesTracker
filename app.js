@@ -106,6 +106,8 @@
   const L = (v) => (v == null ? "" : typeof v === "string" ? v : v[state.lang] ?? v.es ?? "");
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const uid = () => Math.random().toString(36).slice(2, 10);
+  // Fecha de hoy en la zona del navegador (toISOString da UTC y adelanta un día a la noche)
+  const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
 
   // ---------- State ----------
   const defaults = () => ({
@@ -135,15 +137,37 @@
     return defaults();
   }
   let state = load();
+  // Completa campos faltantes y sanea ids (datos viejos o backups importados)
+  const safeId = (id) => (typeof id === "string" && /^[\w-]{1,40}$/.test(id) ? id : uid());
+  const obj = (v) => (v && typeof v === "object" && !Array.isArray(v) ? v : {});
+  const arr = (v) => (Array.isArray(v) ? v : []);
   function migrate() {
+    state.chars = arr(state.chars).filter((c) => c && typeof c === "object");
     for (const c of state.chars) {
-      c.kinah ||= { free: 0, bound: 0 };
-      c.guide ||= {};
-      c.faction ||= state.faction;
+      c.id = safeId(c.id);
+      c.name = String(c.name ?? "?").slice(0, 24);
+      if (!DATA.classes.includes(c.cls)) c.cls = DATA.classes[0];
+      if (c.role !== "main" && c.role !== "alt") c.role = "alt";
+      if (c.faction !== "elyos" && c.faction !== "asmodian") c.faction = state.faction;
+      c.prog = obj(c.prog); c.ms = obj(c.ms); c.guide = obj(c.guide); c.have = obj(c.have);
+      c.cp = arr(c.cp).filter((p) => p && Number.isFinite(p.v)).map((p) => ({ ...p, id: safeId(p.id), d: String(p.d ?? "") }));
+      c.goals = arr(c.goals).filter((g) => g && typeof g === "object").map((g) => ({ ...g, id: safeId(g.id), text: String(g.text ?? "") }));
+      c.craft = arr(c.craft).filter((p) => p && typeof p.r === "string" && p.q > 0);
+      c.notes = String(c.notes ?? "");
+      c.kinah = obj(c.kinah); c.kinah.free = +c.kinah.free || 0; c.kinah.bound = +c.kinah.bound || 0;
       // Ya no hay ocultado manual: la visibilidad depende solo del rol
       delete c.hidden; delete c.hv;
     }
-    state.transfers ||= [];
+    state.custom = arr(state.custom).filter((x) => x && typeof x === "object").map((x) => ({
+      ...x, id: typeof x.id === "string" && /^c_\w{1,40}$/.test(x.id) ? x.id : "c_" + uid(),
+      period: x.period === "weekly" ? "weekly" : "daily", scope: x.scope === "account" ? "account" : "char",
+      max: Math.max(1, Math.min(99, parseInt(x.max, 10) || 1)), name: String(x.name ?? "")
+    }));
+    state.overrides = obj(state.overrides);
+    state.periods = { daily: 0, weekly: 0, ...obj(state.periods) };
+    state.account = { ...obj(state.account) }; state.account.prog = obj(state.account.prog);
+    state.transfers = arr(state.transfers);
+    if (!state.chars.some((c) => c.id === state.active)) state.active = state.chars[0]?.id ?? null;
   }
   migrate();
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (_) {} };
@@ -756,7 +780,7 @@
     if (d.send) {
       const alt = state.chars.find((c) => c.id === d.send), main = state.chars.find((c) => c.role === "main");
       if (alt && main && alt.kinah.free > 0) {
-        state.transfers.push({ d: new Date().toISOString().slice(0, 10), from: alt.name, to: main.name, amount: alt.kinah.free });
+        state.transfers.push({ d: today(), from: alt.name, to: main.name, amount: alt.kinah.free });
         main.kinah.free += alt.kinah.free; alt.kinah.free = 0;
         save(); render();
       }
@@ -778,7 +802,7 @@
     if (d.delTask) { state.custom = state.custom.filter((x) => x.id !== d.delTask); delete state.overrides[d.delTask]; save(); render(); return; }
     if ("export" in d) {
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
-      const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `aion2-tracker-${new Date().toISOString().slice(0, 10)}.json` });
+      const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `aion2-tracker-${today()}.json` });
       a.click(); URL.revokeObjectURL(a.href); return;
     }
     if ("wipe" in d && confirm(t("wipe_confirm"))) {
@@ -795,17 +819,40 @@
     }
     if ("import" in el.dataset && el.files[0]) {
       el.files[0].text().then((txt) => {
-        const obj = JSON.parse(txt);
-        if (!obj || obj.v !== 1 || !Array.isArray(obj.chars)) throw new Error("bad");
-        state = Object.assign(defaults(), obj); save(); renderClocks(); render(); alert(t("imported"));
-      }).catch(() => alert(t("import_bad")));
+        const data = JSON.parse(txt);
+        if (!data || data.v !== 1 || !Array.isArray(data.chars)) throw new Error("bad");
+        return data;
+      }).then((data) => {
+        state = Object.assign(defaults(), data); migrate(); save(); renderClocks(); render(); alert(t("imported"));
+      }, () => alert(t("import_bad")));
+      el.value = "";
     }
-    if ("notes" in el.dataset && ch) { ch.notes = el.value; save(); }
     if (el.dataset.kinah) {
       const c = state.chars.find((x) => x.id === el.dataset.kinah), n = el.value.trim() === "" ? 0 : parseAmount(el.value);
       if (n == null) { el.setCustomValidity(t("k_bad")); el.reportValidity(); return; }
-      el.setCustomValidity(""); c.kinah[el.dataset.kind] = n; save(); render();
+      el.setCustomValidity(""); c.kinah[el.dataset.kind] = n; save();
+      el.value = n ? short(n) : "";
+      const total = document.querySelector(".kinah-table")?.closest(".panel").querySelector(".k-total");
+      if (total) total.textContent = fmtK(state.chars.filter((x) => x.role === "alt").reduce((a, x) => a + x.kinah.free, 0));
+      const send = document.querySelector(`[data-send="${c.id}"]`);
+      if (send) send.disabled = !c.kinah.free;
     }
+  });
+
+  // Las notas se guardan mientras se escribe: si un reset redibuja la vista no se pierde lo tipeado
+  document.addEventListener("input", (e) => {
+    const ch = activeChar();
+    if ("notes" in e.target.dataset && ch) { ch.notes = e.target.value; save(); }
+  });
+
+  // Otra pestaña guardó cambios: se recargan para no pisarlos con una copia vieja
+  window.addEventListener("storage", (e) => {
+    if (e.key !== KEY || !e.newValue) return;
+    // La pestaña y el personaje activo son de esta ventana: no se copian de la otra
+    const { tab, active } = state;
+    state = load(); state.tab = tab; state.active = active; migrate();
+    if (document.activeElement?.matches("input, textarea, select") && $view.contains(document.activeElement)) return renderClocks();
+    renderClocks(); render();
   });
 
   document.addEventListener("submit", (e) => {
@@ -816,7 +863,7 @@
     if ("cpForm" in f.dataset && ch) {
       const v = parseInt(fd.get("v"), 10);
       if (!(v >= 0)) return;
-      ch.cp.push({ id: uid(), d: String(fd.get("d") || new Date().toISOString().slice(0, 10)), v });
+      ch.cp.push({ id: uid(), d: String(fd.get("d") || today()), v });
       ch.cp.sort((a, b) => a.d.localeCompare(b.d));
     } else if ("goalForm" in f.dataset && ch) {
       ch.goals.push({ id: uid(), text: String(fd.get("text")).trim(), done: false });

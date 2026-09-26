@@ -115,7 +115,7 @@
 
   // ---------- material math ----------
   function totals(ch) {
-    const need = {}, craftedFrom = {}, expand = opts().expand;
+    const need = {}, expand = opts().expand;
     let gold = 0;
     const walk = (r, times, depth) => {
       gold += (r.gold || 0) * times;
@@ -123,7 +123,6 @@
         const amount = q * times, subR = sub && db.byId[sub];
         if (expand && subR && depth < 6) {
           const crafts = Math.ceil(amount / (subR.out?.[1] || 1));
-          craftedFrom[id] = (craftedFrom[id] || 0) + amount;
           walk(subR, crafts, depth + 1);
         } else need[id] = (need[id] || 0) + amount;
       }
@@ -194,7 +193,7 @@
       <p class="hint" style="margin-top:0">${s("expand_hint")}</p>
       <div class="list-head" style="margin-top:14px"><h3>${s("shopping")}</h3>
         ${gold ? `<span class="muted">${s("kinah")}: <b class="k-total">${fmt(gold)}</b></span>` : ""}</div>
-      ${missingCount ? "" : `<p class="rc-done">${s("all_done")}</p>`}
+      <p class="rc-done" ${missingCount ? "hidden" : ""}>${s("all_done")}</p>
       <div class="table-wrap"><table class="matrix rc-mats">
         <thead><tr><th></th><th>${s("need")}</th><th>${s("have")}</th><th>${s("missing")}</th></tr></thead>
         <tbody>${ids.map((id) => { const miss = Math.max(0, need[id] - (ch.have[id] || 0)); return `<tr class="${miss ? "" : "ok"}">
@@ -263,6 +262,8 @@
       // Actualiza solo la fila para no perder el foco al tabular
       const { need } = totals(ch), miss = Math.max(0, (need[d.have] || 0) - n), tr = el.closest("tr"), cell = tr?.lastElementChild;
       if (cell) { cell.textContent = miss ? fmt(miss) : "✓"; cell.className = miss ? "part" : "full"; tr.classList.toggle("ok", !miss); }
+      const done = document.querySelector(".rc-done");
+      if (done) done.hidden = Object.keys(need).some((id) => (ch.have[id] || 0) < need[id]);
     }
   });
   document.addEventListener("click", (e) => {
