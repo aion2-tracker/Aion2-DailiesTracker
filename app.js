@@ -25,7 +25,6 @@
       daily_reset: "Reset diario", weekly_reset: "Reset semanal", adjust: "Ajustar",
       resets_at: "Resetea", your_time: "en tu hora", every_day: "todos los días",
       daily: "Diarias", weekly: "Semanales", shared: "compartido", shared_hint: "Compartido por todo el roster",
-      show_hidden: "Mostrar ocultas", hide_hidden: "Esconder ocultas",
       star: "Dar estrella en GitHub", star_hint: "¿Te sirve? Dale una estrella en GitHub",
       add_char: "Agregar personaje", edit_char: "Editar personaje", characters: "Personajes", edit: "Editar", new_char: "Nuevo personaje",
       name: "Nombre", cls: "Clase", role: "Rol", main: "Main", alt: "Alter",
@@ -72,7 +71,6 @@
       daily_reset: "Daily reset", weekly_reset: "Weekly reset", adjust: "Adjust",
       resets_at: "Resets", your_time: "your time", every_day: "every day",
       daily: "Daily", weekly: "Weekly", shared: "shared", shared_hint: "Shared by the whole roster",
-      show_hidden: "Show hidden", hide_hidden: "Collapse hidden",
       star: "Star on GitHub", star_hint: "Find it useful? Give it a star on GitHub",
       add_char: "Add character", edit_char: "Edit character", characters: "Characters", edit: "Edit", new_char: "New character",
       name: "Name", cls: "Class", role: "Role", main: "Main", alt: "Alt",
@@ -116,7 +114,6 @@
     faction: "asmodian",
     tab: "checklist",
     active: null,
-    showHidden: false,
     clocks: {
       daily: { tz: LOCAL_TZ, time: "05:00" },
       weekly: { tz: LOCAL_TZ, time: "05:00", day: 3 }
@@ -167,6 +164,7 @@
     state.periods = { daily: 0, weekly: 0, ...obj(state.periods) };
     state.account = { ...obj(state.account) }; state.account.prog = obj(state.account.prog);
     state.transfers = arr(state.transfers);
+    delete state.showHidden; // ya no existe el botón "Mostrar ocultas"
     if (!state.chars.some((c) => c.id === state.active)) state.active = state.chars[0]?.id ?? null;
   }
   migrate();
@@ -474,15 +472,12 @@
     const col = (period) => {
       const all = tasks.filter((tk) => tk.period === period);
       const vis = all.filter((tk) => !isHidden(tk, ch));
-      const hid = all.filter((tk) => isHidden(tk, ch));
       const got = vis.reduce((a, tk) => a + getVal(tk, ch) / tk.max, 0);
       const pct = vis.length ? Math.round((got / vis.length) * 100) : 0;
       return `<section class="${period}-list">
         <div class="list-head"><h2>${t(period)}</h2><span class="pct">${pct}% ${t("done")}</span></div>
         <div class="bar"><i style="width:${pct}%"></i></div>
         ${vis.map((tk) => taskRow(tk, ch)).join("")}
-        ${state.showHidden ? hid.map((tk) => taskRow(tk, ch)).join("") : ""}
-        ${hid.length ? `<div class="list-foot"><button class="btn small" data-show-hidden>${state.showHidden ? t("hide_hidden") : `${t("show_hidden")} (${hid.length})`}</button></div>` : ""}
       </section>`;
     };
     $view.innerHTML = `
@@ -786,7 +781,6 @@
       }
       return;
     }
-    if ("showHidden" in d) { state.showHidden = !state.showHidden; save(); render(); return; }
     if (d.goal && ch) { const g = ch.goals.find((x) => x.id === d.goal); g.done = el.checked; save(); render(); return; }
     if (d.delGoal && ch) { ch.goals = ch.goals.filter((x) => x.id !== d.delGoal); save(); render(); return; }
     if (d.delCp && ch) { ch.cp = ch.cp.filter((x) => x.id !== d.delCp); save(); render(); return; }
