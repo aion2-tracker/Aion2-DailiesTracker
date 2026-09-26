@@ -27,17 +27,17 @@
 
 /* Elyos: cielo de Atreia */
 :root[data-faction="elyos"] {
-  --bg: #eaf0f3;
-  --bg-deep: #dde6eb;
-  --surface: #f9fbfc;
-  --surface-2: #eef3f6;
-  --line: #c9d6de;
+  --bg: #d3dbe0;
+  --bg-deep: #c7d1d8;
+  --surface: #e3e9ed;
+  --surface-2: #d8e0e5;
+  --line: #b3c1ca;
   --ink: #1b2a36;
-  --ink-soft: #566877;
-  --aether: #16707f;
-  --gold: #a0721a;
-  --danger: #b43b48;
-  --ring-track: #d3dee5;
+  --ink-soft: #4a5b69;
+  --aether: #0e5f6c;
+  --gold: #7f5a10;
+  --danger: #9e2f3b;
+  --ring-track: #bfcbd3;
   color-scheme: light;
 }
 
