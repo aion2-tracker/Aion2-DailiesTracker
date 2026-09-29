@@ -51,7 +51,9 @@
       overview_empty: "Agregá personajes para ver el resumen del roster.",
       done: "hecho", days: ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"],
       tips_intro: "Enfocado solo en la versión global (NA, SA, EU y JP). Basado en anuncios de NCSOFT, el Launch Scale Test y guías de la comunidad. Lo marcado sin confirmar puede cambiar el 5 de octubre: corregilo en Ajustes o mandá un PR.",
-      contribute: "¿Algo desactualizado? Abrí un issue o PR en GitHub."
+      contribute: "¿Algo desactualizado? Abrí un issue o PR en GitHub.",
+      grp_char: "De este personaje", grp_shared: "Compartido por el roster", completed: "completas", task: "Tarea",
+      row_progress: "Progreso", open_checklist: "Abrir su checklist", left: "pendientes", all_done: "todo listo"
     },
     en: {
       il_next: "Next", il_left: "to go", il_max: "You meet every requirement on the list.", il_since: "since",
@@ -97,7 +99,9 @@
       overview_empty: "Add characters to see the roster overview.",
       done: "done", days: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
       tips_intro: "Focused only on the global version (NA, SA, EU and JP). Based on NCSOFT announcements, the Launch Scale Test and community guides. Unconfirmed items may change on October 5: fix them in Settings or send a PR.",
-      contribute: "Something outdated? Open an issue or PR on GitHub."
+      contribute: "Something outdated? Open an issue or PR on GitHub.",
+      grp_char: "This character", grp_shared: "Shared by the roster", completed: "complete", task: "Task",
+      row_progress: "Progress", open_checklist: "Open its checklist", left: "left", all_done: "all done"
     }
   };
   const t = (k) => STR[state.lang][k] ?? STR.es[k] ?? k;
@@ -439,6 +443,16 @@
       `<button type="button" class="chip add" data-add-char>+ ${t("add_char")}</button>`;
   }
 
+  // Resumen de un período para un personaje: tareas completas y porcentaje ponderado por cargas
+  function periodStats(period, ch, tasks = activeTasks()) {
+    const vis = tasks.filter((tk) => tk.period === period && !isHidden(tk, ch));
+    const done = vis.filter((tk) => getVal(tk, ch) >= tk.max).length;
+    const got = vis.reduce((a, tk) => a + getVal(tk, ch) / tk.max, 0);
+    return { vis, done, total: vis.length, pct: vis.length ? Math.round((got / vis.length) * 100) : 0 };
+  }
+
+  const sigil = (c) => `<span class="sigil ${c.role}">${esc(c.cls[0])}</span>`;
+
   function taskRow(tk, ch) {
     const v = getVal(tk, ch);
     let ctrl;
@@ -450,14 +464,16 @@
     } else {
       ctrl = `<div class="stepper"><button data-set="${tk.id}" data-v="${v - 1}" aria-label="-1">−</button><output>${v}/${tk.max}</output><button data-set="${tk.id}" data-v="${v + 1}" aria-label="+1">+</button></div>`;
     }
-    return `<div class="task ${v >= tk.max ? "done" : ""}">
-      <div class="t-name">${esc(L(tk.name))}
-        ${tk.scope === "account" ? `<span class="badge shared" title="${t("shared_hint")}">${t("shared")}</span>` : ""}
-        ${tk.max > 1 ? `<span class="badge">${v}/${tk.max}</span>` : ""}
-        ${tk.sure === false ? `<span class="badge" title="${t("unconfirmed_hint")}">${t("unconfirmed")}</span>` : ""}
+    const st = v >= tk.max ? "done" : v > 0 ? "part" : "";
+    return `<div class="task ${st}">
+      <div class="t-main">
+        <div class="t-name">${esc(L(tk.name))}
+          ${tk.sure === false ? `<span class="badge" title="${t("unconfirmed_hint")}">${t("unconfirmed")}</span>` : ""}
+        </div>
+        ${L(tk.desc) ? `<div class="t-desc">${esc(L(tk.desc))}</div>` : ""}
       </div>
+      <span class="t-count">${v}/${tk.max}</span>
       <div class="t-ctrl">${ctrl}</div>
-      ${L(tk.desc) ? `<div class="t-desc">${esc(L(tk.desc))}</div>` : ""}
     </div>`;
   }
 
@@ -469,42 +485,79 @@
       return;
     }
     const tasks = activeTasks();
-    const col = (period) => {
-      const all = tasks.filter((tk) => tk.period === period);
-      const vis = all.filter((tk) => !isHidden(tk, ch));
-      const got = vis.reduce((a, tk) => a + getVal(tk, ch) / tk.max, 0);
-      const pct = vis.length ? Math.round((got / vis.length) * 100) : 0;
-      return `<section class="${period}-list">
-        <div class="list-head"><h2>${t(period)}</h2><span class="pct">${pct}% ${t("done")}</span></div>
-        <div class="bar"><i style="width:${pct}%"></i></div>
-        ${vis.map((tk) => taskRow(tk, ch)).join("")}
+    const tile = (period) => {
+      const st = periodStats(period, ch, tasks);
+      return `<div class="sum-tile ${period}-list">
+        <span class="sum-label">${t(period)}</span>
+        <span class="sum-num">${st.done}<small>/${st.total}</small></span>
+        <span class="sum-sub">${st.done === st.total ? t("all_done") : `${st.total - st.done} ${t("left")}`} · ${st.pct}%</span>
+        <div class="bar"><i style="width:${st.pct}%"></i></div>
+      </div>`;
+    };
+    const board = (period) => {
+      const st = periodStats(period, ch, tasks);
+      const own = st.vis.filter((tk) => tk.scope !== "account"), shared = st.vis.filter((tk) => tk.scope === "account");
+      const group = (label, list, cls) => list.length ? `<div class="grp ${cls}">
+          <div class="grp-head">${label}</div>${list.map((tk) => taskRow(tk, ch)).join("")}</div>` : "";
+      return `<section class="board ${period}-list">
+        <header class="board-head">
+          <h2>${t(period)}</h2>
+          <span class="board-count">${st.done}/${st.total} ${t("completed")}</span>
+          <div class="bar"><i style="width:${st.pct}%"></i></div>
+        </header>
+        ${group(t("grp_char"), own, "own")}
+        ${group(t("grp_shared"), shared, "shared")}
       </section>`;
     };
     $view.innerHTML = `
-      <div class="list-head" style="margin-bottom:16px">
-        <h2 style="font-size:1.9rem">${esc(ch.name)} <span class="muted" style="font-size:1rem">${t(ch.role)} · ${esc(ch.cls)}</span></h2>
-        <button class="btn small" data-edit-char>${t("edit_char")}</button>
+      <div class="char-head">
+        <div class="char-id">${sigil(ch)}
+          <div><h2>${esc(ch.name)}</h2><span class="muted">${t(ch.role)} · ${esc(ch.cls)} · ${t(ch.faction)}</span></div>
+          <button class="btn small" data-edit-char>${t("edit_char")}</button>
+        </div>
+        ${tile("daily")}${tile("weekly")}
       </div>
-      <div class="lists">${col("daily")}${col("weekly")}</div>`;
+      <div class="lists">${board("daily")}${board("weekly")}</div>`;
   }
 
   function renderOverview() {
     if (!state.chars.length) { $view.innerHTML = `<div class="panel empty"><p>${t("overview_empty")}</p></div>`; return; }
-    const tasks = activeTasks();
-    const block = (period) => `
-      <tr><th colspan="${state.chars.length + 1}" style="text-align:left;padding-top:18px"><h3>${t(period)}</h3></th></tr>
-      ${tasks.filter((tk) => tk.period === period).map((tk) => `<tr>
-        <td>${esc(L(tk.name))}${tk.scope === "account" ? ` <span class="badge shared">${t("shared")}</span>` : ""}</td>
-        ${state.chars.map((c) => {
-          if (isHidden(tk, c)) return `<td class="hidden">—</td>`;
-          const v = getVal(tk, c);
-          const cls = v >= tk.max ? "full" : v > 0 ? "part" : "";
-          return `<td class="${cls}">${tk.max === 1 ? (v ? "✓" : "·") : `${v}/${tk.max}`}</td>`;
-        }).join("")}
-      </tr>`).join("")}`;
-    $view.innerHTML = `<div class="table-wrap"><table class="matrix">
-      <thead><tr><th></th>${state.chars.map((c) => `<th>${esc(c.name)}<br><span class="muted">${t(c.role)}</span></th>`).join("")}</tr></thead>
-      <tbody>${block("daily")}${block("weekly")}</tbody></table></div>`;
+    const tasks = activeTasks(), chars = state.chars, act = activeChar();
+    const cur = (c) => (act && c.id === act.id ? "cur" : "");
+    const cell = (tk, c) => {
+      const v = getVal(tk, c);
+      const cls = v >= tk.max ? "full" : v > 0 ? "part" : "zero";
+      return `<span class="cell ${cls}">${tk.max === 1 ? (v ? "✓" : "") : `${v}/${tk.max}`}</span>`;
+    };
+    const board = (period) => {
+      const list = tasks.filter((tk) => tk.period === period);
+      const own = list.filter((tk) => tk.scope !== "account"), shared = list.filter((tk) => tk.scope === "account");
+      const head = `<tr><th class="task-col">${t("task")}</th>${chars.map((c) => `<th class="${cur(c)}">
+          <button type="button" class="col-char" data-char="${c.id}" data-goto="checklist" title="${t("open_checklist")}">
+            ${sigil(c)}<span>${esc(c.name)}<small>${t(c.role)} · ${esc(c.cls)}</small></span></button></th>`).join("")}</tr>`;
+      const prog = `<tr class="prog-row"><td class="task-col">${t("row_progress")}</td>${chars.map((c) => {
+          const st = periodStats(period, c, tasks);
+          return `<td class="${cur(c)}"><b>${st.done}/${st.total}</b><div class="bar"><i style="width:${st.pct}%"></i></div></td>`;
+        }).join("")}</tr>`;
+      const ownRows = own.map((tk) => `<tr>
+          <td class="task-col">${esc(L(tk.name))}</td>
+          ${chars.map((c) => `<td class="${cur(c)}">${isHidden(tk, c) ? `<span class="cell na">—</span>` : cell(tk, c)}</td>`).join("")}
+        </tr>`).join("");
+      // Lo compartido se lleva una sola vez: una celda que ocupa todo el roster
+      const sharedRows = shared.length ? `<tr class="grp-row"><td colspan="${chars.length + 1}">${t("grp_shared")}</td></tr>` +
+        shared.map((tk) => `<tr class="shared-row">
+          <td class="task-col">${esc(L(tk.name))}</td>
+          <td colspan="${chars.length}">${cell(tk, chars[0])}</td>
+        </tr>`).join("") : "";
+      return `<section class="board ${period}-list">
+        <header class="board-head"><h2>${t(period)}</h2></header>
+        <div class="table-wrap"><table class="matrix roster-table">
+          <thead>${head}</thead>
+          <tbody>${prog}${ownRows}${sharedRows}</tbody>
+        </table></div>
+      </section>`;
+    };
+    $view.innerHTML = `<div class="stack">${board("daily")}${board("weekly")}</div>`;
   }
 
   function sparkline(cp) {
@@ -754,7 +807,7 @@
     if (d.setFaction) { state.faction = d.setFaction; save(); applyChrome(); return; }
     if (d.lang) { state.lang = d.lang; save(); renderClocks(); render(); return; }
     if (d.tab) { state.tab = d.tab; save(); render(); return; }
-    if (d.char) { state.active = d.char; save(); render(); return; }
+    if (d.char) { state.active = d.char; if (d.goto) state.tab = d.goto; save(); render(); return; }
     if ("addChar" in d) { charDialog(null); return; }
     if ("editChar" in d && ch) { charDialog(ch); return; }
     if (d.editCharId) { charDialog(state.chars.find((c) => c.id === d.editCharId)); return; }
