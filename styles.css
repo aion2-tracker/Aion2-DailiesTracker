@@ -230,7 +230,8 @@ button { cursor: pointer; }
 .task.done { border-left-color: var(--accent); }
 .t-main { min-width: 0; }
 .task .t-name { font-weight: 600; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.task.done .t-name { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--line); }
+.task.done .t-name { color: var(--ink-soft); }
+.task.done .t-label { text-decoration: line-through; text-decoration-color: var(--line); }
 .task .t-desc { font-size: .83rem; color: var(--ink-soft); max-width: 62ch; margin-top: 2px; }
 .task.done .t-desc { opacity: .7; }
 .t-count {
@@ -281,6 +282,9 @@ button { cursor: pointer; }
   border: 1px solid var(--line); color: var(--ink-soft); text-decoration: none;
 }
 .badge.shared { color: var(--gold); border-color: color-mix(in srgb, var(--gold) 45%, transparent); }
+/* inline-block: no hereda el tachado de la tarea hecha (justo ahí importa cuánto falta) */
+.badge.reset { display: inline-block; color: var(--aether); border-color: color-mix(in srgb, var(--aether) 50%, transparent); font-weight: 500; }
+.badge.reset b { font-variant-numeric: tabular-nums; }
 .t-ctrl { display: flex; align-items: center; gap: 6px; }
 
 /* Cargas: una piedra por uso */
@@ -408,6 +412,8 @@ dialog .actions { display: flex; justify-content: flex-end; gap: 8px; margin-top
   .t-ctrl { justify-content: space-between; }
   .pips { justify-content: flex-start; max-width: none; }
   .clock-edit { top: 6px; right: 6px; }
+  .tasks-table th, .tasks-table td { padding-inline: 5px; }
+  .tasks-table input[type="number"] { width: 52px !important; }
 }
 .tasks-table td:nth-child(2) { text-align: left; white-space: normal; }
 

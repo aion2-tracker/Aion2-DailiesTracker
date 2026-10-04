@@ -34,14 +34,14 @@
       alt_note: "A los alters les mostramos una lista corta. Podés mostrar el resto cuando quieras.",
       clock_title_daily: "Reset diario", clock_title_weekly: "Reset semanal",
       timezone: "Zona horaria", time: "Hora del reset", weekday: "Día",
-      tz_hint: "Escribí una ciudad (ej. America/Buenos_Aires). Cada contador usa su propia zona. NCSOFT todavía no anunció la hora de reset de los servidores globales.",
+      tz_hint: "Escribí una ciudad (ej. America/Buenos_Aires). Cada contador usa su propia zona. Si una tarea resetea a otra hora, cambiala en Ajustes → Tareas.",
       tz_invalid: "Esa zona horaria no existe. Elegí una de la lista.",
       preset_local: "Mi hora", next_reset: "Próximo reset",
       cp: "Item Level", cp_add: "Registrar", cp_empty: "Registrá tu Item Level para ver tu curva.",
       gates: "Contenido por Item Level", milestones: "Hitos permanentes", goals: "Objetivos", goal_ph: "Ej. +15 en el arma",
       notes: "Notas", notes_ph: "Builds, stigmas, lo que quieras recordar…",
       history: "Historial",
-      lang_label: "Idioma", tasks: "Tareas", tasks_hint: "Ajustá las cargas si tu servidor es distinto, o apagá lo que no hacés.",
+      lang_label: "Idioma", tasks: "Tareas", tasks_hint: "Ajustá las cargas o la hora de reset si tu servidor es distinto, o apagá lo que no hacés.",
       on: "Activa", charges: "Cargas", custom_task: "Tarea propia", period: "Período", scope: "Alcance",
       per_char: "Por personaje", per_account: "Compartida (roster)",
       data: "Tus datos", export: "Exportar backup", import: "Importar backup", wipe: "Borrar todo",
@@ -53,7 +53,10 @@
       tips_intro: "Enfocado solo en la versión global (NA, SA, EU y JP). Basado en anuncios de NCSOFT, el Launch Scale Test y guías de la comunidad. Lo marcado sin confirmar puede cambiar el 5 de octubre: corregilo en Ajustes o mandá un PR.",
       contribute: "¿Algo desactualizado? Abrí un issue o PR en GitHub.",
       grp_char: "De este personaje", grp_shared: "Compartido por el roster", completed: "completas", task: "Tarea",
-      row_progress: "Progreso", open_checklist: "Abrir su checklist", left: "pendientes", all_done: "todo listo"
+      row_progress: "Progreso", open_checklist: "Abrir su checklist", left: "pendientes", all_done: "todo listo",
+      reset_col: "Reset", reset_general: "General", task_reset: "Reset de la tarea", use_general: "Usar el general",
+      task_reset_hint: "Para contenido que no resetea junto con el resto. Usa la zona horaria del contador {kind} ({tz}).",
+      of_daily: "diario", of_weekly: "semanal", resets_in: "Resetea en"
     },
     en: {
       il_next: "Next", il_left: "to go", il_max: "You meet every requirement on the list.", il_since: "since",
@@ -82,14 +85,14 @@
       alt_note: "Alts start with a short list. Show the rest whenever you like.",
       clock_title_daily: "Daily reset", clock_title_weekly: "Weekly reset",
       timezone: "Time zone", time: "Reset time", weekday: "Day",
-      tz_hint: "Type a city (e.g. America/New_York). Each counter uses its own zone. NCSOFT hasn't announced the reset time for global servers yet.",
+      tz_hint: "Type a city (e.g. America/New_York). Each counter uses its own zone. If a task resets at another time, change it in Settings → Tasks.",
       tz_invalid: "That time zone doesn't exist. Pick one from the list.",
       preset_local: "My time", next_reset: "Next reset",
       cp: "Item Level", cp_add: "Log", cp_empty: "Log your Item Level to see your curve.",
       gates: "Content by Item Level", milestones: "Permanent milestones", goals: "Goals", goal_ph: "e.g. +15 weapon",
       notes: "Notes", notes_ph: "Builds, stigmas, anything to remember…",
       history: "History",
-      lang_label: "Language", tasks: "Tasks", tasks_hint: "Adjust charges if your server differs, or turn off what you skip.",
+      lang_label: "Language", tasks: "Tasks", tasks_hint: "Adjust charges or reset time if your server differs, or turn off what you skip.",
       on: "On", charges: "Charges", custom_task: "Custom task", period: "Period", scope: "Scope",
       per_char: "Per character", per_account: "Shared (roster)",
       data: "Your data", export: "Export backup", import: "Import backup", wipe: "Delete everything",
@@ -101,7 +104,10 @@
       tips_intro: "Focused only on the global version (NA, SA, EU and JP). Based on NCSOFT announcements, the Launch Scale Test and community guides. Unconfirmed items may change on October 5: fix them in Settings or send a PR.",
       contribute: "Something outdated? Open an issue or PR on GitHub.",
       grp_char: "This character", grp_shared: "Shared by the roster", completed: "complete", task: "Task",
-      row_progress: "Progress", open_checklist: "Open its checklist", left: "left", all_done: "all done"
+      row_progress: "Progress", open_checklist: "Open its checklist", left: "left", all_done: "all done",
+      reset_col: "Reset", reset_general: "General", task_reset: "Task reset", use_general: "Use general",
+      task_reset_hint: "For content that doesn't reset with everything else. Uses the {kind} counter's time zone ({tz}).",
+      of_daily: "daily", of_weekly: "weekly", resets_in: "Resets in"
     }
   };
   const t = (k) => STR[state.lang][k] ?? STR.es[k] ?? k;
@@ -113,16 +119,18 @@
 
   // ---------- State ----------
   const defaults = () => ({
-    v: 1,
+    v: 2,
     lang: (navigator.language || "es").startsWith("es") ? "es" : "en",
     faction: "asmodian",
     tab: "checklist",
     active: null,
     clocks: {
-      daily: { tz: LOCAL_TZ, time: "05:00" },
-      weekly: { tz: LOCAL_TZ, time: "05:00", day: 3 }
+      // Reset global: 09:00 hora del servidor = 07:00 UTC (visto en el juego; NCSOFT no lo publicó)
+      daily: { tz: "UTC", time: "07:00" },
+      weekly: { tz: "UTC", time: "07:00", day: 3 }
     },
     periods: { daily: 0, weekly: 0 },
+    taskPeriods: {}, // último reset visto de cada tarea con hora propia
     overrides: {},
     custom: [],
     chars: [],
@@ -165,10 +173,29 @@
       max: Math.max(1, Math.min(99, parseInt(x.max, 10) || 1)), name: String(x.name ?? "")
     }));
     state.overrides = obj(state.overrides);
+    for (const o of Object.values(state.overrides)) {
+      if (!o || typeof o !== "object" || !("reset" in o) || o.reset === null) continue;
+      const r = obj(o.reset);
+      if (!/^\d{2}:\d{2}$/.test(r.time)) { delete o.reset; continue; }
+      o.reset = { time: r.time, ...(Number.isInteger(r.day) && r.day >= 0 && r.day <= 6 ? { day: r.day } : {}) };
+    }
+    state.taskPeriods = Object.fromEntries(Object.entries(obj(state.taskPeriods)).filter(([, v]) => Number.isFinite(v)));
     state.periods = { daily: 0, weekly: 0, ...obj(state.periods) };
     state.account = { ...obj(state.account) }; state.account.prog = obj(state.account.prog);
     state.transfers = arr(state.transfers);
     delete state.showHidden; // ya no existe el botón "Mostrar ocultas"
+    // v2: los contadores que seguían en el default viejo (05:00 local) pasan al reset global real.
+    // periods = 0 para que el cambio de hora no borre el progreso.
+    if (!(state.v >= 2)) {
+      const fresh = defaults().clocks;
+      for (const kind of ["daily", "weekly"]) {
+        const c = obj(state.clocks?.[kind]);
+        if (c.tz === LOCAL_TZ && c.time === "05:00" && (kind === "daily" || c.day === 3)) {
+          state.clocks[kind] = fresh[kind]; state.periods[kind] = 0;
+        }
+      }
+      state.v = 2;
+    }
     if (!state.chars.some((c) => c.id === state.active)) state.active = state.chars[0]?.id ?? null;
   }
   migrate();
@@ -205,8 +232,8 @@
   function validTz(tz) {
     try { new Intl.DateTimeFormat("en-US", { timeZone: tz }); return true; } catch (_) { return false; }
   }
-  function boundaries(kind, now = Date.now()) {
-    const c = state.clocks[kind];
+  // Reset anterior y siguiente para un reloj { tz, time, day? }
+  function bounds(c, kind, now = Date.now()) {
     const tz = validTz(c.tz) ? c.tz : "UTC";
     const [hh, mm] = (c.time || "05:00").split(":").map(Number);
     const p = zoneParts(now, tz);
@@ -224,6 +251,11 @@
     const next = zonedToUtc(...shiftDay(pp.y, pp.m, pp.d, 7), hh, mm, tz);
     return { prev, next };
   }
+  const boundaries = (kind, now) => bounds(state.clocks[kind], kind, now);
+  // Tareas con reset propio: misma zona que su contador general, otra hora (y día si es semanal)
+  const taskClock = (tk) => tk.reset ? { tz: state.clocks[tk.period].tz, time: tk.reset.time,
+    day: tk.reset.day ?? state.clocks.weekly.day } : state.clocks[tk.period];
+  const taskBounds = (tk, now) => bounds(taskClock(tk), tk.period, now);
   let tzList = null;
   const allZones = () => tzList || (tzList = (Intl.supportedValuesOf ? Intl.supportedValuesOf("timeZone") : [
     "UTC", "America/Buenos_Aires", "America/Sao_Paulo", "America/Santiago", "America/Mexico_City", "America/New_York",
@@ -245,7 +277,7 @@
   function allTasks() {
     return [...DATA.tasks, ...state.custom].map((tk) => {
       const o = state.overrides[tk.id] || {};
-      return { ...tk, max: Math.max(1, o.max ?? tk.max), off: !!o.off };
+      return { ...tk, max: Math.max(1, o.max ?? tk.max), off: !!o.off, reset: ("reset" in o ? o.reset : tk.reset) || null };
     });
   }
   const activeTasks = () => allTasks().filter((tk) => !tk.off);
@@ -259,14 +291,26 @@
   // Limpia el progreso cuando pasa un reset
   function applyResets() {
     let changed = false;
+    const tasks = allTasks();
+    const clear = (ids) => { for (const store of [state.account.prog, ...state.chars.map((c) => c.prog)]) ids.forEach((id) => delete store[id]); };
     for (const kind of ["daily", "weekly"]) {
       const { prev } = boundaries(kind);
       if (state.periods[kind] !== prev) {
-        if (state.periods[kind]) {
-          const ids = allTasks().filter((tk) => tk.period === kind).map((tk) => tk.id);
-          for (const store of [state.account.prog, ...state.chars.map((c) => c.prog)]) ids.forEach((id) => delete store[id]);
-        }
+        if (state.periods[kind]) clear(tasks.filter((tk) => tk.period === kind && !tk.reset).map((tk) => tk.id));
         state.periods[kind] = prev;
+        changed = true;
+      }
+    }
+    // Cada tarea con hora propia lleva su período aparte
+    for (const tk of tasks) {
+      if (!tk.reset) {
+        if (tk.id in state.taskPeriods) { delete state.taskPeriods[tk.id]; changed = true; }
+        continue;
+      }
+      const { prev } = taskBounds(tk), last = state.taskPeriods[tk.id];
+      if (last !== prev) {
+        if (last) clear([tk.id]); // sin registro = recién configurada: no se borra el progreso
+        state.taskPeriods[tk.id] = prev;
         changed = true;
       }
     }
@@ -331,6 +375,26 @@
       const html = clockMeta(kind, next);
       if (meta.innerHTML !== html) meta.innerHTML = html;
     });
+    $view.querySelectorAll("[data-next]").forEach((el) => {
+      const txt = fmtLeft(+el.dataset.next - now), b = el.querySelector("b");
+      if (b.textContent !== txt) b.textContent = txt;
+    });
+  }
+  // "3d 4h", "5h 12m" o "42m" para el reset propio de una tarea
+  function fmtLeft(ms) {
+    const m = Math.max(0, Math.ceil(ms / 60000)), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60);
+    return d ? `${d}d ${h}h` : h ? `${h}h ${m % 60}m` : `${m % 60}m`;
+  }
+  function resetLabel(tk) {
+    if (!tk.reset) return t("reset_general");
+    return tk.period === "weekly" ? `${t("days")[tk.reset.day ?? state.clocks.weekly.day].slice(0, 3)} ${tk.reset.time}` : tk.reset.time;
+  }
+  function resetBadge(tk) {
+    if (!tk.reset) return "";
+    const next = taskBounds(tk).next;
+    const local = new Intl.DateTimeFormat(state.lang, { weekday: tk.period === "weekly" ? "short" : undefined, hour: "2-digit", minute: "2-digit" }).format(next);
+    const title = `${t("resets_at")} ${resetLabel(tk)} · ${taskClock(tk).tz.replace(/_/g, " ")} (${local} ${t("your_time")})`;
+    return `<span class="badge reset" data-next="${next}" title="${esc(title)}">${t("resets_in")} <b>${fmtLeft(next - Date.now())}</b></span>`;
   }
 
   // ---------- Dialog ----------
@@ -382,6 +446,36 @@
         const b = e.target.closest("[data-preset]");
         if (b) form.elements.tz.value = b.dataset.preset;
       });
+  }
+
+  function taskResetDialog(tk) {
+    const r = tk.reset || { time: state.clocks[tk.period].time, day: state.clocks.weekly.day };
+    const hint = t("task_reset_hint").replace("{kind}", t(tk.period === "weekly" ? "of_weekly" : "of_daily"))
+      .replace("{tz}", esc(state.clocks[tk.period].tz.replace(/_/g, " ")));
+    const apply = (reset) => {
+      (state.overrides[tk.id] ||= {}).reset = reset;
+      if (reset) state.taskPeriods[tk.id] = taskBounds({ ...tk, reset }).prev; // cambiar la hora no borra el progreso
+      else delete state.taskPeriods[tk.id];
+      save(); render();
+    };
+    openDialog(`
+      <h2>${t("task_reset")}: ${esc(L(tk.name))}</h2>
+      <div class="stack">
+        <p class="hint">${hint}</p>
+        <div class="row">
+          ${tk.period === "weekly" ? `<label class="field">${t("weekday")}
+            <select name="day">${t("days").map((d, i) => `<option value="${i}" ${i === (r.day ?? state.clocks.weekly.day) ? "selected" : ""}>${esc(d)}</option>`).join("")}</select>
+          </label>` : ""}
+          <label class="field">${t("time")}<input type="time" name="time" value="${esc(r.time)}" required></label>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" class="btn" data-general style="margin-right:auto">${t("use_general")}</button>
+        <button class="btn" value="cancel" formnovalidate>${t("cancel")}</button>
+        <button class="btn primary" value="ok">${t("save")}</button>
+      </div>`,
+      (fd) => apply({ time: String(fd.get("time") || "05:00"), ...(tk.period === "weekly" ? { day: +fd.get("day") } : {}) }),
+      (e) => { if (e.target.closest("[data-general]")) { $dlg.close(); apply(null); } });
   }
 
   function charDialog(ch) {
@@ -467,8 +561,9 @@
     const st = v >= tk.max ? "done" : v > 0 ? "part" : "";
     return `<div class="task ${st}">
       <div class="t-main">
-        <div class="t-name">${esc(L(tk.name))}
+        <div class="t-name"><span class="t-label">${esc(L(tk.name))}</span>
           ${tk.sure === false ? `<span class="badge" title="${t("unconfirmed_hint")}">${t("unconfirmed")}</span>` : ""}
+          ${resetBadge(tk)}
         </div>
         ${L(tk.desc) ? `<div class="t-desc">${esc(L(tk.desc))}</div>` : ""}
       </div>
@@ -727,15 +822,16 @@
       <td><input type="checkbox" data-task-on="${tk.id}" ${tk.off ? "" : "checked"} aria-label="${t("on")}"></td>
       <td>${esc(L(tk.name))}${tk.scope === "account" ? ` <span class="badge shared">${t("shared")}</span>` : ""}</td>
       <td><input type="number" min="1" max="99" value="${tk.max}" data-task-max="${tk.id}" style="width:70px" aria-label="${t("charges")}"></td>
+      <td><button type="button" class="btn small ${tk.reset ? "primary" : ""}" data-task-reset="${tk.id}">${esc(resetLabel(tk))}</button></td>
       <td>${state.custom.some((c) => c.id === tk.id) ? `<button class="icon-btn" data-del-task="${tk.id}">${t("delete")}</button>` : ""}</td>
     </tr>`).join("");
     $view.innerHTML = `<div class="grid2">
       <section class="panel">
         <h3>${t("tasks")}</h3><p class="hint">${t("tasks_hint")}</p>
         <div class="table-wrap"><table class="matrix tasks-table">
-          <thead><tr><th>${t("on")}</th><th style="text-align:left">${t("name")}</th><th>${t("charges")}</th><th></th></tr></thead>
-          <tbody><tr><th colspan="4" style="text-align:left"><h3>${t("daily")}</h3></th></tr>${rows("daily")}
-          <tr><th colspan="4" style="text-align:left"><h3>${t("weekly")}</h3></th></tr>${rows("weekly")}</tbody>
+          <thead><tr><th>${t("on")}</th><th style="text-align:left">${t("name")}</th><th>${t("charges")}</th><th>${t("reset_col")}</th><th></th></tr></thead>
+          <tbody><tr><th colspan="5" style="text-align:left"><h3>${t("daily")}</h3></th></tr>${rows("daily")}
+          <tr><th colspan="5" style="text-align:left"><h3>${t("weekly")}</h3></th></tr>${rows("weekly")}</tbody>
         </table></div>
       </section>
       <div class="stack">
@@ -846,7 +942,12 @@
       return;
     }
     if (d.taskOn) { (state.overrides[d.taskOn] ||= {}).off = !el.checked; save(); return; }
-    if (d.delTask) { state.custom = state.custom.filter((x) => x.id !== d.delTask); delete state.overrides[d.delTask]; save(); render(); return; }
+    if (d.taskReset) { const tk = allTasks().find((x) => x.id === d.taskReset); if (tk) taskResetDialog(tk); return; }
+    if (d.delTask) {
+      state.custom = state.custom.filter((x) => x.id !== d.delTask);
+      delete state.overrides[d.delTask]; delete state.taskPeriods[d.delTask];
+      save(); render(); return;
+    }
     if ("export" in d) {
       const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
       const a = Object.assign(document.createElement("a"), { href: URL.createObjectURL(blob), download: `aion2-tracker-${today()}.json` });
