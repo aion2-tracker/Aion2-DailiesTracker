@@ -119,15 +119,15 @@
 
   // ---------- State ----------
   const defaults = () => ({
-    v: 2,
+    v: 3,
     lang: (navigator.language || "es").startsWith("es") ? "es" : "en",
     faction: "asmodian",
     tab: "checklist",
     active: null,
     clocks: {
-      // Reset global: 09:00 hora del servidor = 07:00 UTC (visto en el juego; NCSOFT no lo publicó)
-      daily: { tz: "UTC", time: "07:00" },
-      weekly: { tz: "UTC", time: "07:00", day: 3 }
+      // Reset global: 16:00 UTC (NCSOFT no lo publicó)
+      daily: { tz: "UTC", time: "16:00" },
+      weekly: { tz: "UTC", time: "16:00", day: 3 }
     },
     periods: { daily: 0, weekly: 0 },
     taskPeriods: {}, // último reset visto de cada tarea con hora propia
@@ -195,6 +195,17 @@
         }
       }
       state.v = 2;
+    }
+    // v3: el reset global pasa de 07:00 a 16:00 UTC. Solo se mueven los contadores que seguían en el default.
+    if (!(state.v >= 3)) {
+      const fresh = defaults().clocks;
+      for (const kind of ["daily", "weekly"]) {
+        const c = obj(state.clocks?.[kind]);
+        if (c.tz === "UTC" && c.time === "07:00" && (kind === "daily" || c.day === 3)) {
+          state.clocks[kind] = fresh[kind]; state.periods[kind] = 0;
+        }
+      }
+      state.v = 3;
     }
     if (!state.chars.some((c) => c.id === state.active)) state.active = state.chars[0]?.id ?? null;
   }

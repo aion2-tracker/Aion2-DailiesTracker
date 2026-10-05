@@ -12,8 +12,8 @@
  *
  * Fuentes: anuncios de NCSOFT para global (livestream 7/8, membresía 18/8, cierre del Launch Scale Test 18/9),
  * análisis del cliente del Launch Scale Test (17/9), guías de la comunidad para global y lo visto en el early access (30/9).
- * Reset general en global: 09:00 hora del servidor = 07:00 UTC, el semanal los miércoles. NCSOFT no lo publicó; visto en el juego.
- * Revisado 2026-10-04.
+ * Reset general en global: 16:00 UTC, el semanal los miércoles. NCSOFT no lo publicó.
+ * Revisado 2026-10-05.
  */
 window.AION_DATA = {
   tasks: [
